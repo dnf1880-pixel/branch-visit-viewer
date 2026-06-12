@@ -245,11 +245,11 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
       <span class="user-name" id="headerUserName"></span>
     </div>
     <div class="header-actions">
+      <button class="btn-icon" title="看板" onclick="exportForDashboard()">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      </button>
       <button class="btn-icon" title="导出Excel" onclick="exportData()">
         <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-      </button>
-      <button class="btn-icon" title="导出看板数据" onclick="exportForDashboard()" style="background:#f97316;color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;height:auto">
-        📤 看板
       </button>
       <button class="btn-icon" title="导入" onclick="document.getElementById('importFile').click()">
         <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
@@ -263,6 +263,7 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 <div class="tab-bar">
   <div class="tab-btn active" data-tab="form" onclick="switchTab('form')">📝 拜访登记</div>
   <div class="tab-btn" data-tab="history" onclick="switchTab('history')">📚 历史记录</div>
+  <div class="tab-btn" data-tab="query" onclick="switchTab('query')">🔍 数据查询</div>
 </div>
 
 <!-- Container -->
@@ -371,6 +372,15 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
     </div>
     <div class="record-count" id="recordCount"></div>
     <div id="historyList"></div>
+  </div>
+
+  <!-- Query Panel -->
+  <div class="tab-panel" id="panelQuery">
+    <div class="empty-state" style="padding:60px 20px">
+      <svg viewBox="0 0 24 24" style="width:48px;height:48px;fill:var(--border);margin-bottom:12px"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <p style="font-size:.9rem;color:var(--text2)">数据查询功能即将上线</p>
+      <p style="font-size:.78rem;color:var(--text3);margin-top:4px">支持按网点、日期、标签、关键词等多维度检索</p>
+    </div>
   </div>
 </div>
 
@@ -1524,7 +1534,8 @@ function parseTodos(val) {
 function switchTab(tab) {
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
   document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-  document.getElementById(tab === "form" ? "panelForm" : "panelHistory").classList.add("active");
+  const panelMap = { form: "panelForm", history: "panelHistory", query: "panelQuery" };
+  document.getElementById(panelMap[tab] || "panelForm").classList.add("active");
   if (tab === "history") renderHistory();
 }
 
