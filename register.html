@@ -204,6 +204,79 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 @media(min-width:600px){
   .container{max-width:560px;margin:0 auto}
 }
+
+/* ===== Dashboard Panel ===== */
+.panel-overlay{display:none;padding:12px 16px 40px;min-height:100vh}
+.panel-overlay.active{display:block}
+.panel-back{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;font-size:.82rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap;margin-bottom:12px}
+.panel-back:hover{border-color:var(--purple);color:var(--purple)}
+.panel-back svg{width:14px;height:14px;fill:currentColor}
+.panel-title{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.section-title{font-size:.9rem;font-weight:700;color:var(--text);margin:20px 0 10px;padding-left:10px;border-left:3px solid var(--purple)}
+.section-title:first-of-type{margin-top:0}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+@media(max-width:480px){.metrics{gap:8px}}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px;text-align:center}
+.metric-card .m-label{font-size:.72rem;color:var(--text2);margin-bottom:6px}
+.metric-card .m-value{font-size:1.6rem;font-weight:800}
+.metric-card .m-value.c-purple{color:var(--purple)}
+.metric-card .m-value.c-pink{color:var(--pink)}
+.metric-card .m-value.c-green{color:var(--green)}
+.metric-card .m-value.c-orange{color:var(--orange)}
+.coverage-wrapper{display:flex;gap:8px;flex-direction:column}
+@media(min-width:500px){.coverage-wrapper{flex-direction:row}}
+.coverage-col{flex:1;display:flex;flex-direction:column;gap:8px}
+.city-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px}
+.city-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.city-card-title{font-weight:700;font-size:.8rem;color:var(--text);display:flex;align-items:center;gap:5px}
+.city-card-title .cd{width:6px;height:6px;border-radius:50%;background:var(--purple);flex-shrink:0}
+.city-card-stat{font-size:.65rem;color:var(--text3)}
+.city-card-table{display:table;width:100%;border-collapse:collapse}
+.city-card-row{display:table-row}
+.city-card-cell{display:table-cell;padding:3px 0;font-size:.72rem;color:var(--text2);vertical-align:middle}
+.city-card-cell.name{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0;width:100%}
+.city-card-cell.count{text-align:right;padding-left:12px;font-weight:700;color:var(--purple);white-space:nowrap;width:1%}
+.todo-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;align-items:center}
+.todo-filter .f-btn{padding:5px 10px;border-radius:14px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:.76rem;cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.todo-filter .f-btn:hover{border-color:var(--purple);color:var(--purple)}
+.todo-filter .f-btn.active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+.todo-filter .sort-arrow{font-size:.6rem;transition:transform .2s;display:inline-block}
+.todo-filter .sort-arrow.asc{transform:rotate(180deg)}
+.todo-filter select{background:var(--bg2);border:1px solid var(--border);border-radius:14px;color:var(--text);padding:5px 10px;font-size:.76rem;cursor:pointer;min-width:80px;max-width:130px}
+.todo-filter select:focus{border-color:var(--purple);outline:none}
+.todo-filter .sep{width:1px;height:16px;background:var(--border);margin:0 2px;flex-shrink:0}
+.todo-list{display:flex;flex-direction:column;gap:8px}
+.todo-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;transition:border-color .15s}
+.todo-card:hover{border-color:var(--purple)}
+.todo-card.done{opacity:.55}
+.todo-card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.todo-card-info{display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--text2);min-width:0}
+.todo-card-date{white-space:nowrap}
+.todo-card-branch{color:var(--purple);font-weight:600;white-space:nowrap}
+.todo-card-branch::before{content:"· ";color:var(--text3)}
+.status-badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.7rem;font-weight:600;cursor:pointer;transition:all .15s;user-select:none;flex-shrink:0}
+.status-badge.progress{background:var(--orange-dim);color:var(--orange)}
+.status-badge.done{background:var(--green-dim);color:var(--green)}
+.status-badge:hover{opacity:.75}
+.todo-card-task{font-size:.85rem;color:var(--text);line-height:1.5;cursor:text;padding:4px 0;border-bottom:1px solid transparent;transition:border-color .15s}
+.todo-card-task:focus{border-bottom-color:var(--purple);outline:none}
+.todo-card-task::before{content:"任务：";font-size:.72rem;color:var(--text3)}
+.todo-card-task:empty::after{content:"点击编辑";color:var(--text3);font-size:.78rem}
+.todo-card-remark{font-size:.78rem;color:var(--text2);line-height:1.4;cursor:text;padding:4px 0;margin-top:4px;border-bottom:1px solid transparent;transition:border-color .15s}
+.todo-card-remark:focus{border-bottom-color:var(--purple);outline:none;color:var(--text)}
+.todo-card-remark::before{content:"备注：";font-size:.72rem;color:var(--text3)}
+.todo-card-remark:empty::after{content:"点击添加备注";color:var(--text3);font-size:.72rem;font-style:italic}
+
+/* ===== Help Panel ===== */
+.help-panel{padding:24px;max-width:720px;margin:0 auto}
+.help-panel h1{font-size:1.3rem;color:#fff;margin-bottom:4px}
+.help-panel h2{font-size:1.05rem;color:#fff;margin:28px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.help-panel .sub{color:var(--text2);font-size:.8rem;margin-bottom:20px}
+.help-panel p{margin:6px 0;font-size:.88rem;color:var(--text)}
+.help-panel ol,.help-panel ul{padding-left:22px;margin:6px 0}
+.help-panel li{margin:3px 0;font-size:.86rem;color:var(--text2)}
+.help-panel .changelog{border-left:2px solid var(--purple);padding-left:12px;margin:8px 0;color:#aaa;font-size:.84rem}
+.help-panel .changelog b{color:#fff}
 </style>
 </head>
 <body>
@@ -254,10 +327,10 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
       <span class="user-name" id="headerUserName"></span>
     </div>
     <div class="header-actions">
-      <button class="btn-icon" title="使用说明" onclick="location.href='help.html'">
+      <button class="btn-icon" title="使用说明" onclick="showPanel('help')">
         <svg viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
       </button>
-      <button class="btn-icon" title="看板" onclick="location.href='dashboard.html'">
+      <button class="btn-icon" title="看板" onclick="showPanel('dashboard')">
         <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
       </button>
       <button class="btn-icon" title="导出Excel" onclick="exportData()">
@@ -407,6 +480,103 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
       <svg viewBox="0 0 24 24" style="width:48px;height:48px;fill:var(--border);margin-bottom:12px"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
       <p style="font-size:.9rem;color:var(--text2)">数据查询功能即将上线</p>
       <p style="font-size:.78rem;color:var(--text3);margin-top:4px">支持按网点、日期、标签、关键词等多维度检索</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Dashboard Panel ===== -->
+<div class="panel-overlay" id="panelDashboard">
+  <button class="panel-back" onclick="showPanel('form')">
+    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    返回主界面
+  </button>
+  <div class="panel-title" style="margin-bottom:16px">📊 待办跟进看板</div>
+
+  <div class="section-title">📍 拜访总览</div>
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="m-label">累计拜访</div>
+      <div class="m-value c-purple" id="dTotalVisits">-</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">本月拜访</div>
+      <div class="m-value c-pink" id="dMonthVisits">-</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">本周拜访</div>
+      <div class="m-value c-green" id="dWeekVisits">-</div>
+    </div>
+  </div>
+
+  <div class="section-title">🏙️ 拜访覆盖</div>
+  <div class="coverage-wrapper" id="coverageList"></div>
+
+  <div class="section-title" style="margin-top:20px">✅ 待办总览</div>
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="m-label">待办总数</div>
+      <div class="m-value c-purple" id="dTodoTotal">-</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">跟进中</div>
+      <div class="m-value c-orange" id="dTodoProgress">-</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">已完结</div>
+      <div class="m-value c-green" id="dTodoDone">-</div>
+    </div>
+  </div>
+
+  <div class="section-title">📋 待办明细</div>
+  <div class="todo-filter">
+    <button class="f-btn active" id="dSortBtn" onclick="dToggleSort()">日期 <span class="sort-arrow">▼</span></button>
+    <select id="dFilterCity" onchange="dApplyFilters()">
+      <option value="all">全部城市</option>
+    </select>
+    <select id="dFilterBranch" onchange="dApplyFilters()">
+      <option value="all">全部网点</option>
+    </select>
+    <select id="dFilterStatus" onchange="dApplyFilters()">
+      <option value="all">全部状态</option>
+      <option value="progress">跟进中</option>
+      <option value="done">已完结</option>
+    </select>
+  </div>
+  <div id="dTodoDetail"></div>
+</div>
+
+<!-- ===== Help Panel ===== -->
+<div class="panel-overlay" id="panelHelp">
+  <button class="panel-back" onclick="showPanel('form')">
+    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    返回主界面
+  </button>
+  <div class="help-panel">
+    <h1>📋 拜访登记系统 · 使用说明</h1>
+    <p class="sub">圆通速递 · 荆州/荆门/宜昌/恩施/潜江 | 42 个网点 | v3.0</p>
+    <h2>基本操作</h2>
+    <ol>
+      <li><b>登录</b> — 输入姓名和工号，浏览器记住，下次自动登录</li>
+      <li><b>选网点</b> — 下拉搜索或拼音匹配，自动带出联系人/电话/地址</li>
+      <li><b>填备注</b> — 描述拜访中发现的问题，系统自动识别标签</li>
+      <li><b>AI待办</b> — 开启AI开关（粉色），根据标签自动生成待办清单</li>
+      <li><b>提交</b> — 点击提交完成登记</li>
+    </ol>
+    <h2>网点标签</h2>
+    <p>系统内置12个标签：服务品质、散单取件、时效管控、遗失破损、工单CCR、揽派运营、终端驿站、市场客户、逆向业务、安全生产、人员管理、设备运维。填写备注时自动打标（绿色），也可手动勾选。</p>
+    <h2>AI智能待办</h2>
+    <p>开启后，根据标签自动匹配知识库中的整改方案，生成3-6条待办，可自定义修改。关闭AI开关不会被识别标签，标签永远识别。</p>
+    <h2>网点联系人</h2>
+    <p>选中网点后自动填充联系人。如需修改，编辑后点击「保存网点信息」，刷新即生效。</p>
+    <h2>数据导入导出</h2>
+    <p>点击⬆️⬇️按钮导出/导入Excel。支持跨设备迁移：导出→传到另一台电脑→导入（自动去重）。</p>
+    <h2>待办跟进看板</h2>
+    <p>点击顶部📊按钮进入看板，查看拜访总览、城市覆盖、待办状态汇总及明细。</p>
+    <h2>本月更新</h2>
+    <div class="changelog">
+      <b>v3.0</b> — IndexedDB本地存储、网点联系人信息管理、AI待办知识库、看板+帮助整合为单页<br>
+      <b>v2.0</b> — 拜访登记、Excel导入导出、标签系统、看板概览<br>
+      <b>v1.0</b> — 基础拜访表单、登录系统、历史记录
     </div>
   </div>
 </div>
@@ -1879,6 +2049,241 @@ function debounce(fn, ms) {
 const styleEl = document.createElement("style");
 styleEl.textContent = "@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}";
 document.head.appendChild(styleEl);
+
+/* ============================================================
+   Panel Switch — form / dashboard / help
+   ============================================================ */
+function showPanel(name) {
+  // Hide all panels
+  document.querySelectorAll(".panel-overlay").forEach(p => p.classList.remove("active"));
+  // Hide main UI elements
+  const header = document.getElementById("mainHeader");
+  const tabBar = document.querySelector(".tab-bar");
+  const container = document.querySelector(".container");
+  const loginOverlay = document.getElementById("loginOverlay");
+
+  if (name === "form") {
+    header.style.display = "";
+    tabBar.style.display = "";
+    container.style.display = "";
+  } else {
+    header.style.display = "none";
+    tabBar.style.display = "none";
+    container.style.display = "none";
+  }
+
+  if (name === "dashboard") {
+    document.getElementById("panelDashboard").classList.add("active");
+    renderDashboard();
+  } else if (name === "help") {
+    document.getElementById("panelHelp").classList.add("active");
+  }
+}
+
+/* ============================================================
+   Dashboard Logic
+   ============================================================ */
+let dCurrentSort = "new";
+let dAllRecords = [];
+
+async function renderDashboard() {
+  try {
+    if (!db) await openDB();
+    dAllRecords = await getAllRecords();
+  } catch (e) {
+    console.error(e);
+    return;
+  }
+
+  const now = new Date();
+  const monday = (() => {
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const m = new Date(now); m.setDate(diff); m.setHours(0,0,0,0);
+    return m;
+  })();
+  const mondayStr = monday.toISOString().split("T")[0];
+  const monthStartStr = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0") + "-01";
+
+  let monthCount = 0, weekCount = 0;
+  const cityMap = {};
+
+  for (const r of dAllRecords) {
+    const d = r.date;
+    if (d >= monthStartStr) monthCount++;
+    if (d >= mondayStr) weekCount++;
+    const bp = r.branch ? r.branch.split(" · ") : [];
+    const city = r.branchCity || bp[0] || "其他";
+    if (!cityMap[city]) cityMap[city] = {};
+    const bName = r.branchName || bp[1] || r.branch || "未知";
+    cityMap[city][bName] = (cityMap[city][bName] || 0) + 1;
+  }
+
+  document.getElementById("dTotalVisits").textContent = dAllRecords.length;
+  document.getElementById("dMonthVisits").textContent = monthCount;
+  document.getElementById("dWeekVisits").textContent = weekCount;
+
+  dRenderCoverage(cityMap);
+  dPopulateFilters(cityMap);
+  dRenderTodos();
+}
+
+function dRenderCoverage(cityMap) {
+  const container = document.getElementById("coverageList");
+  if (Object.keys(cityMap).length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding:24px"><p>暂无拜访数据</p></div>';
+    return;
+  }
+  function cleanName(city, name) {
+    const prefixes = [city + "市·", city + "市", city + "·"];
+    for (const p of prefixes) { if (name.startsWith(p)) return name.slice(p.length); }
+    return name;
+  }
+  function renderCityCard(city) {
+    const branches = cityMap[city];
+    if (!branches) return "";
+    const entries = Object.entries(branches).sort((a,b) => b[1]-a[1]);
+    const total = entries.reduce((s,[,c]) => s+c, 0);
+    let html = '<div class="city-card"><div class="city-card-head"><span class="city-card-title"><span class="cd"></span>'+city+'</span><span class="city-card-stat">'+entries.length+'网点 '+total+'次</span></div><div class="city-card-table">';
+    for (const [name, count] of entries) {
+      html += '<div class="city-card-row"><span class="city-card-cell name">'+escapeHtml(cleanName(city, name))+'</span><span class="city-card-cell count">'+count+'次</span></div>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+  const leftPref = ["荆州","恩施"];
+  const rightPref = ["宜昌","荆门","潜江"];
+  const allCities = Object.keys(cityMap).sort();
+  const left = [], right = [];
+  for (const c of allCities) {
+    if (leftPref.some(p => c.startsWith(p))) left.push(c);
+    else right.push(c);
+  }
+  let lh = "", rh = "";
+  for (const c of left) lh += renderCityCard(c);
+  for (const c of right) rh += renderCityCard(c);
+  container.innerHTML = '<div class="coverage-col">'+lh+'</div><div class="coverage-col">'+rh+'</div>';
+}
+
+function dPopulateFilters(cityMap) {
+  const selB = document.getElementById("dFilterBranch");
+  const selC = document.getElementById("dFilterCity");
+  let co = '<option value="all">全部城市</option>';
+  for (const city of Object.keys(cityMap).sort()) {
+    co += '<option value="'+city+'">'+city+'</option>';
+  }
+  selC.innerHTML = co;
+  const allB = [];
+  for (const city of Object.keys(cityMap).sort()) {
+    for (const bName of Object.keys(cityMap[city]).sort()) {
+      allB.push({city, name: bName});
+    }
+  }
+  let bo = '<option value="all">全部网点</option>';
+  for (const b of allB) {
+    bo += '<option value="'+b.name+'">'+b.name+'</option>';
+  }
+  selB.innerHTML = bo;
+}
+
+function dToggleSort() {
+  dCurrentSort = dCurrentSort === "new" ? "old" : "new";
+  const btn = document.getElementById("dSortBtn");
+  const arrow = btn.querySelector(".sort-arrow");
+  arrow.classList.toggle("asc", dCurrentSort === "old");
+  dRenderTodos();
+}
+
+function dApplyFilters() {
+  dRenderTodos();
+}
+
+function dRenderTodos() {
+  const cityF = document.getElementById("dFilterCity").value;
+  const branchF = document.getElementById("dFilterBranch").value;
+  const statusF = document.getElementById("dFilterStatus").value;
+
+  const items = [];
+  for (const r of dAllRecords) {
+    const task = (r.todoTask || r.notes || "").trim();
+    if (!task) continue;
+    items.push({
+      key: r.id, recordId: r.id, date: r.date,
+      branch: r.branchName || r.branch || "未知",
+      city: r.branchCity || "其他", task,
+      remark: r.todoRemark || "",
+      status: r.todoStatus || "progress"
+    });
+  }
+  if (dCurrentSort === "new") {
+    items.sort((a,b) => b.date.localeCompare(a.date) || b.recordId.localeCompare(a.recordId));
+  } else {
+    items.sort((a,b) => a.date.localeCompare(b.date) || a.recordId.localeCompare(b.recordId));
+  }
+  let filtered = items;
+  if (cityF !== "all") filtered = filtered.filter(t => t.city === cityF);
+  if (branchF !== "all") filtered = filtered.filter(t => t.branch === branchF);
+  if (statusF !== "all") filtered = filtered.filter(t => t.status === statusF);
+
+  const total = items.length;
+  const done = items.filter(t => t.status === "done").length;
+  const progress = total - done;
+  document.getElementById("dTodoTotal").textContent = total;
+  document.getElementById("dTodoProgress").textContent = progress;
+  document.getElementById("dTodoDone").textContent = done;
+
+  const container = document.getElementById("dTodoDetail");
+  if (total === 0) {
+    container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg><p>暂无待办事项</p><p style="font-size:.72rem">记录带有备注的拜访记录将自动生成待办</p></div>';
+    return;
+  }
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding:24px"><p>当前筛选条件下无匹配待办</p></div>';
+    return;
+  }
+  let html = '<div class="todo-list">';
+  for (const item of filtered) {
+    const isDone = item.status === "done";
+    html += '<div class="todo-card'+(isDone?' done':'')+'">';
+    html += '<div class="todo-card-meta">';
+    html += '<span class="todo-card-info"><span class="todo-card-date">'+item.date+'</span><span class="todo-card-branch">'+escapeHtml(item.branch)+'</span></span>';
+    html += '<span class="status-badge '+(isDone?'done':'progress')+'" onclick="dToggleStatus(\''+item.key+'\')">'+(isDone?'已完结':'跟进中')+'</span>';
+    html += '</div>';
+    html += '<div class="todo-card-task" contenteditable="true" data-key="'+item.key+'" data-field="task" onblur="dSaveEdit(this)">'+escapeHtml(item.task)+'</div>';
+    html += '<div class="todo-card-remark" contenteditable="true" data-key="'+item.key+'" data-field="remark" onblur="dSaveEdit(this)">'+(item.remark?escapeHtml(item.remark):'')+'</div>';
+    html += '</div>';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function dToggleStatus(key) {
+  const record = dAllRecords.find(r => r.id === key);
+  if (!record) return;
+  record.todoStatus = record.todoStatus === "done" ? "progress" : "done";
+  record.todoUpdatedAt = new Date().toISOString();
+  try {
+    await updateRecord(record);
+    dRenderTodos();
+  } catch(e) {}
+}
+
+async function dSaveEdit(el) {
+  const key = el.dataset.key;
+  const field = el.dataset.field;
+  const newVal = el.innerText.trim();
+  const record = dAllRecords.find(r => r.id === key);
+  if (!record) return;
+  if (field === "task") {
+    record.todoTask = newVal || (record.notes || "");
+  } else if (field === "remark") {
+    record.todoRemark = newVal;
+  }
+  record.todoUpdatedAt = new Date().toISOString();
+  try {
+    await updateRecord(record);
+  } catch(e) {}
+}
 
 /* ============================================================
    Boot
