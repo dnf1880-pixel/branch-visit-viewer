@@ -168,9 +168,32 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 /* ===== History ===== */
 .filter-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .filter-bar .form-input{padding:7px 10px;font-size:.82rem;flex:1;min-width:120px}
-.filter-bar input[type="date"].form-input{color-scheme:dark;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font)}
-.filter-bar input[type="date"].form-input::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 .record-count{font-size:.78rem;color:var(--text2);margin-bottom:10px}
+
+/* Date range buttons */
+.date-range{display:flex;align-items:center;gap:6px;flex:1;min-width:200px}
+.date-btn{flex:1;padding:7px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:.78rem;cursor:pointer;text-align:center;transition:all .15s;white-space:nowrap;font-family:var(--font)}
+.date-btn:hover{border-color:var(--purple);color:var(--purple)}
+.date-btn.filled{color:var(--text);border-color:var(--purple);background:var(--purple-dim)}
+.date-sep{color:var(--text3);font-size:.7rem;flex-shrink:0}
+
+/* Date picker overlay */
+.dp-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center}
+.dp-overlay.show{display:flex}
+.dp-panel{width:100%;max-width:400px;background:var(--bg2);border-radius:16px 16px 0 0;padding:16px 16px 24px;animation:dpUp .25s ease}
+@keyframes dpUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.dp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.dp-title{font-size:.95rem;font-weight:700;color:var(--text)}
+.dp-actions{display:flex;gap:10px}
+.dp-cancel{padding:6px 16px;border-radius:var(--radius-sm);background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:.82rem;cursor:pointer}
+.dp-confirm{padding:6px 20px;border-radius:var(--radius-sm);background:var(--purple);border:none;color:#fff;font-size:.82rem;font-weight:600;cursor:pointer}
+.dp-columns{display:flex;gap:8px;justify-content:center}
+.dp-col{flex:1;max-width:100px;position:relative;height:200px;overflow:hidden;border-radius:var(--radius-sm);background:var(--bg3)}
+.dp-col-track{position:absolute;left:0;right:0;top:0;padding:80px 0;z-index:0}
+.dp-col-item{height:40px;display:flex;align-items:center;justify-content:center;font-size:.95rem;color:var(--text3);cursor:pointer;transition:color .15s;user-select:none}
+.dp-col-item.active{color:var(--text);font-weight:700;font-size:1.05rem}
+.dp-col-focus{position:absolute;left:8px;right:8px;top:50%;transform:translateY(-50%);height:40px;border-top:1px solid var(--purple);border-bottom:1px solid var(--purple);pointer-events:none;border-radius:4px;background:var(--purple-dim);z-index:2}
+.dp-col-label{text-align:center;font-size:.7rem;color:var(--text3);margin-top:4px}
 
 /* Empty state */
 .empty-state{text-align:center;padding:30px 20px;color:var(--text2)}
@@ -209,11 +232,9 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 /* ===== Dashboard Panel ===== */
 .panel-overlay{display:none;padding:12px 16px 40px;min-height:100vh}
 .panel-overlay.active{display:block}
-.panel-back{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:150;display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:2px solid var(--border);border-radius:20px;padding:8px 18px;font-size:.82rem;font-weight:500;color:var(--text2);cursor:grab;transition:box-shadow .2s;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4);backdrop-filter:blur(8px);user-select:none}
-.panel-back:active{cursor:grabbing}
-.panel-back:hover{border-color:var(--purple);color:var(--purple);box-shadow:0 4px 20px rgba(123,92,255,.3)}
-.panel-back:hover{border-color:var(--purple);color:var(--purple);box-shadow:0 4px 20px rgba(123,92,255,.25)}
-.panel-back svg{width:14px;height:14px;fill:currentColor}
+.panel-back{position:fixed;bottom:24px;right:16px;z-index:150;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:2px solid var(--border);font-size:.78rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);backdrop-filter:blur(8px);user-select:none;line-height:1}
+.panel-back:hover{border-color:var(--purple);color:var(--purple);box-shadow:0 4px 24px rgba(123,92,255,.35);transform:scale(1.05)}
+.panel-back:active{transform:scale(.95)}
 
 /* Custom dropdown (dashboard filters) */
 .dd-wrap{position:relative;min-width:80px;max-width:130px;flex-shrink:0}
@@ -308,6 +329,33 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
     <div class="confirm-btns">
       <button class="confirm-cancel" onclick="closeConfirm(false)">取消</button>
       <button class="confirm-ok" onclick="closeConfirm(true)">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Date Picker Overlay -->
+<div class="dp-overlay" id="dpOverlay" onclick="if(event.target===this)closeDatePicker(false)">
+  <div class="dp-panel">
+    <div class="dp-header">
+      <span class="dp-title" id="dpTitle">选择开始日期</span>
+      <div class="dp-actions">
+        <button class="dp-cancel" onclick="closeDatePicker(false)">取消</button>
+        <button class="dp-confirm" onclick="closeDatePicker(true)">确定</button>
+      </div>
+    </div>
+    <div class="dp-columns">
+      <div style="text-align:center;flex:1;max-width:100px">
+        <div class="dp-col" id="dpColYear"><div class="dp-col-track" id="dpTrackYear"></div><div class="dp-col-focus"></div></div>
+        <div class="dp-col-label">年</div>
+      </div>
+      <div style="text-align:center;flex:1;max-width:100px">
+        <div class="dp-col" id="dpColMonth"><div class="dp-col-track" id="dpTrackMonth"></div><div class="dp-col-focus"></div></div>
+        <div class="dp-col-label">月</div>
+      </div>
+      <div style="text-align:center;flex:1;max-width:100px">
+        <div class="dp-col" id="dpColDay"><div class="dp-col-track" id="dpTrackDay"></div><div class="dp-col-focus"></div></div>
+        <div class="dp-col-label">日</div>
+      </div>
     </div>
   </div>
 </div>
@@ -484,8 +532,11 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
   <div class="tab-panel" id="panelHistory">
     <div class="filter-bar">
       <input class="form-input" id="filterBranch" placeholder="搜索网点名">
-      <input type="date" class="form-input" id="filterDateFrom">
-      <input type="date" class="form-input" id="filterDateTo">
+      <div class="date-range">
+        <button class="date-btn" id="dateFromBtn" onclick="openDatePicker('from')">开始日期</button>
+        <span class="date-sep">至</span>
+        <button class="date-btn" id="dateToBtn" onclick="openDatePicker('to')">结束日期</button>
+      </div>
     </div>
     <div class="record-count" id="recordCount"></div>
     <div id="historyList"></div>
@@ -503,10 +554,7 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 
 <!-- ===== Dashboard Panel ===== -->
 <div class="panel-overlay" id="panelDashboard">
-  <button class="panel-back" onclick="showPanel('form')">
-    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-    返回主界面
-  </button>
+  <button class="panel-back" onclick="showPanel('form')">返回</button>
   <div class="dash-header">
     <div class="panel-title">📊 待办跟进看板</div>
     <div class="dash-meta">
@@ -575,10 +623,7 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 
 <!-- ===== Help Panel ===== -->
 <div class="panel-overlay" id="panelHelp">
-  <button class="panel-back" onclick="showPanel('form')">
-    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-    返回主界面
-  </button>
+  <button class="panel-back" onclick="showPanel('form')">返回</button>
   <div class="help-panel">
     <h1>📋 拜访登记系统 · 使用说明</h1>
     <p class="sub">圆通速递 · 荆州/荆门/宜昌/恩施/潜江 | 42 个网点 | v3.0</p>
@@ -1103,8 +1148,6 @@ async function init() {
 
   // History filters
   document.getElementById("filterBranch").addEventListener("input", debounce(renderHistory, 300));
-  document.getElementById("filterDateFrom").addEventListener("change", renderHistory);
-  document.getElementById("filterDateTo").addEventListener("change", renderHistory);
 
   // Close dropdown on outside click
   document.addEventListener("click", (e) => {
@@ -1802,6 +1845,188 @@ async function renderTodayRecords() {
 }
 
 /* ============================================================
+   Date Picker (Scroll Wheel)
+   ============================================================ */
+let dpMode = 'from'; // 'from' | 'to'
+let dpYear = 2026, dpMonth = 6, dpDay = 12;
+let dpTemp = { year: 2026, month: 6, day: 12 };
+let dpDateFrom = '', dpDateTo = '';
+
+function openDatePicker(mode) {
+  dpMode = mode;
+  document.getElementById('dpTitle').textContent = mode === 'from' ? '选择开始日期' : '选择结束日期';
+  const existing = mode === 'from' ? dpDateFrom : dpDateTo;
+  if (existing) {
+    const [y, m, d] = existing.split('-').map(Number);
+    dpYear = y; dpMonth = m; dpDay = d;
+  } else {
+    const now = new Date();
+    dpYear = now.getFullYear();
+    dpMonth = now.getMonth() + 1;
+    dpDay = now.getDate();
+  }
+  dpTemp = { year: dpYear, month: dpMonth, day: dpDay };
+  buildDateColumns();
+  scrollToSelected();
+  document.getElementById('dpOverlay').classList.add('show');
+}
+
+function closeDatePicker(confirm) {
+  document.getElementById('dpOverlay').classList.remove('show');
+  if (confirm) {
+    dpYear = dpTemp.year;
+    dpMonth = dpTemp.month;
+    dpDay = dpTemp.day;
+    const ds = `${dpYear}-${String(dpMonth).padStart(2,'0')}-${String(dpDay).padStart(2,'0')}`;
+    if (dpMode === 'from') {
+      dpDateFrom = ds;
+      const btn = document.getElementById('dateFromBtn');
+      btn.textContent = ds;
+      btn.classList.add('filled');
+    } else {
+      dpDateTo = ds;
+      const btn = document.getElementById('dateToBtn');
+      btn.textContent = ds;
+      btn.classList.add('filled');
+    }
+    renderHistory();
+  }
+}
+
+let _snapGuard = {}; // colId → bool, prevent scroll re-entry
+function buildDateColumns() {
+  const ty = document.getElementById('dpTrackYear');
+  const tm = document.getElementById('dpTrackMonth');
+  const td = document.getElementById('dpTrackDay');
+
+  // Year: current±10
+  let yh = '';
+  for (let y = dpTemp.year - 10; y <= dpTemp.year + 5; y++) {
+    yh += `<div class="dp-col-item${y===dpTemp.year?' active':''}">${y}</div>`;
+  }
+  ty.innerHTML = yh;
+
+  // Month: 1-12
+  let mh = '';
+  for (let m = 1; m <= 12; m++) {
+    mh += `<div class="dp-col-item${m===dpTemp.month?' active':''}">${String(m).padStart(2,'0')}</div>`;
+  }
+  tm.innerHTML = mh;
+
+  // Day: 1 - daysInMonth
+  const dim = new Date(dpTemp.year, dpTemp.month, 0).getDate();
+  let dh = '';
+  for (let d = 1; d <= dim; d++) {
+    dh += `<div class="dp-col-item${d===dpTemp.day?' active':''}">${String(d).padStart(2,'0')}</div>`;
+  }
+  td.innerHTML = dh;
+
+  // Bind scroll events (remove old listeners by cloning)
+  _snapGuard = {};
+  [['dpColYear', 'year'], ['dpColMonth', 'month'], ['dpColDay', 'day']]
+    .forEach(([colId, field]) => {
+      const col = document.getElementById(colId);
+      const clone = col.cloneNode(true);
+      col.parentNode.replaceChild(clone, col);
+      let scrollTimer;
+      clone.addEventListener('scroll', () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => snapColumn(clone, field), 80);
+      });
+    });
+}
+
+function snapColumn(col, field) {
+  if (_snapGuard[col.id]) return;
+  const items = col.querySelectorAll('.dp-col-item');
+  if (!items.length) return;
+  const itemH = 40;
+  const center = col.scrollTop + col.clientHeight / 2;
+  let best = items[0], bestDist = Infinity;
+  items.forEach(item => {
+    const mid = item.offsetTop + itemH / 2;
+    const dist = Math.abs(center - mid);
+    if (dist < bestDist) { bestDist = dist; best = item; }
+  });
+  const val = parseInt(best.textContent);
+  // Update temp immediately (don't wait for smooth scroll)
+  if (field === 'year') dpTemp.year = val;
+  else if (field === 'month') { dpTemp.month = val; updateDayColumn(); }
+  else if (field === 'day') dpTemp.day = val;
+  // Refresh active states
+  col.querySelectorAll('.dp-col-item').forEach(el => el.classList.remove('active'));
+  best.classList.add('active');
+  // Snap scroll (instant to avoid re-entry)
+  _snapGuard[col.id] = true;
+  const target = best.offsetTop - (col.clientHeight - itemH) / 2;
+  col.scrollTo({ top: target, behavior: 'instant' });
+  requestAnimationFrame(() => { _snapGuard[col.id] = false; });
+}
+
+function updateDayColumn() {
+  const dim = new Date(dpTemp.year, dpTemp.month, 0).getDate();
+  if (dpTemp.day > dim) dpTemp.day = dim;
+  const col = document.getElementById('dpColDay');
+  let dh = '';
+  for (let d = 1; d <= dim; d++) {
+    dh += `<div class="dp-col-item${d===dpTemp.day?' active':''}">${String(d).padStart(2,'0')}</div>`;
+  }
+  col.querySelector('.dp-col-track').innerHTML = dh;
+  // Re-bind scroll for the rebuilt day column
+  const clone = col.cloneNode(true);
+  col.parentNode.replaceChild(clone, col);
+  let scrollTimer;
+  clone.addEventListener('scroll', () => {
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => snapColumn(clone, 'day'), 80);
+  });
+  // Update the global reference via ID
+  clone.id = 'dpColDay';
+  clone.scrollTop = 0;
+}
+
+function scrollToSelected() {
+  const scrollToItem = (colId, val) => {
+    const col = document.getElementById(colId);
+    const items = col.querySelectorAll('.dp-col-item');
+    const itemH = 40;
+    items.forEach(item => {
+      if (parseInt(item.textContent) === val) {
+        col.scrollTop = item.offsetTop - (col.clientHeight - itemH) / 2;
+      }
+    });
+  };
+  // Use rAF instead of setTimeout — DOM already built by buildDateColumns
+  requestAnimationFrame(() => {
+    scrollToItem('dpColYear', dpTemp.year);
+    scrollToItem('dpColMonth', dpTemp.month);
+    scrollToItem('dpColDay', dpTemp.day);
+  });
+}
+
+// Direct click on date items → update dpTemp + snap
+document.addEventListener('click', e => {
+  const item = e.target.closest('.dp-col-item');
+  if (!item) return;
+  const col = item.closest('.dp-col');
+  if (!col) return;
+  const val = parseInt(item.textContent);
+  // Determine field from col id
+  if (col.id === 'dpColYear') dpTemp.year = val;
+  else if (col.id === 'dpColMonth') { dpTemp.month = val; updateDayColumn(); }
+  else if (col.id === 'dpColDay') dpTemp.day = val;
+  // Snap to item (instant)
+  const itemH = 40;
+  const target = item.offsetTop - (col.clientHeight - itemH) / 2;
+  _snapGuard[col.id] = true;
+  col.scrollTo({ top: target, behavior: 'instant' });
+  requestAnimationFrame(() => { _snapGuard[col.id] = false; });
+  // Refresh active
+  col.querySelectorAll('.dp-col-item').forEach(el => el.classList.remove('active'));
+  item.classList.add('active');
+});
+
+/* ============================================================
    History
    ============================================================ */
 async function renderHistory() {
@@ -1818,8 +2043,8 @@ async function renderHistory() {
     );
   }
 
-  const dateFrom = document.getElementById("filterDateFrom").value;
-  const dateTo = document.getElementById("filterDateTo").value;
+  const dateFrom = dpDateFrom;
+  const dateTo = dpDateTo;
   if (dateFrom) records = records.filter(r => r.date >= dateFrom);
   if (dateTo) records = records.filter(r => r.date <= dateTo);
 
@@ -2373,79 +2598,6 @@ async function dSaveEdit(el) {
     await updateRecordAndBackup(record);
   } catch(e) {}
 }
-
-/* ============================================================
-   Draggable .panel-back buttons
-   =========================================================== */
-(function(){
-  document.querySelectorAll('.panel-back').forEach((btn, idx) => {
-    const STORE_KEY = 'panelBackPos_' + idx;
-    let dragging = false, moved = false;
-    let sx, sy, ox, oy;
-
-    // Restore saved position
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORE_KEY));
-      if (saved && typeof saved.left === 'number') {
-        btn.style.left = saved.left + 'px';
-        btn.style.top  = saved.top  + 'px';
-        btn.style.transform = 'none';
-        btn.style.bottom = 'auto';
-      }
-    } catch(e) {}
-
-    function savePos() {
-      try {
-        const r = btn.getBoundingClientRect();
-        localStorage.setItem(STORE_KEY, JSON.stringify({left: r.left, top: r.top}));
-      } catch(e) {}
-    }
-
-    btn.addEventListener('pointerdown', e => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      dragging = true; moved = false;
-      sx = e.clientX; sy = e.clientY;
-      const r = btn.getBoundingClientRect();
-      // Ensure we're in px mode (not centered transform)
-      if (btn.style.transform !== 'none') {
-        btn.style.left = r.left + 'px';
-        btn.style.top  = r.top  + 'px';
-        btn.style.transform = 'none';
-        btn.style.bottom = 'auto';
-      }
-      ox = e.clientX - r.left;
-      oy = e.clientY - r.top;
-      btn.setPointerCapture(e.pointerId);
-      btn.style.cursor = 'grabbing';
-    });
-
-    btn.addEventListener('pointermove', e => {
-      if (!dragging) return;
-      const dx = Math.abs(e.clientX - sx), dy = Math.abs(e.clientY - sy);
-      if (dx > 4 || dy > 4) moved = true;
-      btn.style.left = (e.clientX - ox) + 'px';
-      btn.style.top  = (e.clientY - oy) + 'px';
-    });
-
-    btn.addEventListener('pointerup', e => {
-      dragging = false;
-      btn.style.cursor = 'grab';
-      if (moved) {
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        btn._wasDragged = true;
-        setTimeout(() => { btn._wasDragged = false; }, 100);
-      }
-      savePos();
-    });
-
-    // Prevent click if was dragged
-    btn.addEventListener('click', e => {
-      if (btn._wasDragged) { e.preventDefault(); e.stopPropagation(); }
-    }, true);
-  });
-})();
 
 /* ============================================================
    Boot
