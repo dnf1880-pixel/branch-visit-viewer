@@ -1,4 +1,30 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=viewer/"><title>网点拜访数据看板</title></head>
-<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;color:#666">
-<p>正在跳转到数据看板...</p></body></html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>圆通速递 · 网点拜访系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:48px 40px;text-align:center;max-width:420px;width:90%}
+.card h1{color:#fff;font-size:24px;margin-bottom:8px}
+.card p{color:rgba(255,255,255,.5);font-size:14px;margin-bottom:32px}
+.card a{display:block;padding:16px 24px;margin:12px 0;border-radius:12px;text-decoration:none;font-size:16px;font-weight:600;transition:all .2s}
+.btn-viewer{background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;box-shadow:0 4px 20px rgba(249,115,22,.3)}
+.btn-viewer:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(249,115,22,.4)}
+.btn-register{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.btn-register:hover{background:rgba(255,255,255,.18);transform:translateY(-2px)}
+.footer{color:rgba(255,255,255,.3);font-size:12px;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>圆通速递</h1>
+  <p>荆州·荆门·宜昌·恩施·潜江 | 42网点</p>
+  <a href="viewer/" class="btn-viewer">📊 数据看板</a>
+  <a href="register.html" class="btn-register">📝 拜访登记</a>
+  <div class="footer">Powered by GitHub Pages</div>
+</div>
+</body>
+</html>
