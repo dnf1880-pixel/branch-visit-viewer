@@ -208,9 +208,21 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 /* ===== Dashboard Panel ===== */
 .panel-overlay{display:none;padding:12px 16px 40px;min-height:100vh}
 .panel-overlay.active{display:block}
-.panel-back{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;font-size:.82rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap;margin-bottom:12px}
-.panel-back:hover{border-color:var(--purple);color:var(--purple)}
+.panel-back{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:150;display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 18px;font-size:.82rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4);backdrop-filter:blur(8px)}
+.panel-back:hover{border-color:var(--purple);color:var(--purple);box-shadow:0 4px 20px rgba(123,92,255,.25)}
 .panel-back svg{width:14px;height:14px;fill:currentColor}
+
+/* Custom dropdown (dashboard filters) */
+.dd-wrap{position:relative;min-width:80px;max-width:130px;flex-shrink:0}
+.dd-trigger{display:flex;align-items:center;justify-content:space-between;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:5px 10px;font-size:.76rem;color:var(--text);cursor:pointer;transition:border-color .15s;user-select:none;white-space:nowrap}
+.dd-trigger:hover,.dd-wrap.open .dd-trigger{border-color:var(--purple)}
+.dd-arrow{font-size:.5rem;color:var(--text3);transition:transform .2s}
+.dd-wrap.open .dd-arrow{transform:rotate(180deg)}
+.dd-menu{position:absolute;top:calc(100% + 4px);left:0;right:auto;min-width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);max-height:200px;overflow-y:auto;z-index:60;display:none}
+.dd-wrap.open .dd-menu{display:block}
+.dd-opt{padding:6px 10px;font-size:.74rem;color:var(--text2);cursor:pointer;transition:all .1s;white-space:nowrap}
+.dd-opt:hover{background:var(--purple-dim);color:var(--purple)}
+.dd-opt.selected{color:var(--purple);font-weight:600;background:var(--purple-dim)}
 .panel-title{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
 .dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px}
 .dash-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -246,8 +258,6 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 .todo-filter .f-btn.active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
 .todo-filter .sort-arrow{font-size:.6rem;transition:transform .2s;display:inline-block}
 .todo-filter .sort-arrow.asc{transform:rotate(180deg)}
-.todo-filter select{background:var(--bg2);border:1px solid var(--border);border-radius:14px;color:var(--text);padding:5px 10px;font-size:.76rem;cursor:pointer;min-width:80px;max-width:130px}
-.todo-filter select:focus{border-color:var(--purple);outline:none}
 .todo-filter .sep{width:1px;height:16px;background:var(--border);margin:0 2px;flex-shrink:0}
 .todo-list{display:flex;flex-direction:column;gap:8px}
 .todo-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;transition:border-color .15s}
@@ -540,17 +550,22 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
   <div class="section-title">📋 待办明细</div>
   <div class="todo-filter">
     <button class="f-btn active" id="dSortBtn" onclick="dToggleSort()">日期 <span class="sort-arrow">▼</span></button>
-    <select id="dFilterCity" onchange="dApplyFilters()">
-      <option value="all">全部城市</option>
-    </select>
-    <select id="dFilterBranch" onchange="dApplyFilters()">
-      <option value="all">全部网点</option>
-    </select>
-    <select id="dFilterStatus" onchange="dApplyFilters()">
-      <option value="all">全部状态</option>
-      <option value="progress">跟进中</option>
-      <option value="done">已完结</option>
-    </select>
+    <div class="dd-wrap" id="ddCity">
+      <div class="dd-trigger" onclick="ddToggle('ddCity')"><span class="dd-label">全部城市</span><span class="dd-arrow">▼</span></div>
+      <div class="dd-menu"><div class="dd-opt selected" data-val="all" onclick="ddSelect('ddCity','all','全部城市')">全部城市</div></div>
+    </div>
+    <div class="dd-wrap" id="ddBranch">
+      <div class="dd-trigger" onclick="ddToggle('ddBranch')"><span class="dd-label">全部网点</span><span class="dd-arrow">▼</span></div>
+      <div class="dd-menu"><div class="dd-opt selected" data-val="all" onclick="ddSelect('ddBranch','all','全部网点')">全部网点</div></div>
+    </div>
+    <div class="dd-wrap" id="ddStatus">
+      <div class="dd-trigger" onclick="ddToggle('ddStatus')"><span class="dd-label">全部状态</span><span class="dd-arrow">▼</span></div>
+      <div class="dd-menu">
+        <div class="dd-opt selected" data-val="all" onclick="ddSelect('ddStatus','all','全部状态')">全部状态</div>
+        <div class="dd-opt" data-val="progress" onclick="ddSelect('ddStatus','progress','跟进中')">跟进中</div>
+        <div class="dd-opt" data-val="done" onclick="ddSelect('ddStatus','done','已完结')">已完结</div>
+      </div>
+    </div>
   </div>
   <div id="dTodoDetail"></div>
 </div>
@@ -2096,6 +2111,40 @@ function showPanel(name) {
 }
 
 /* ============================================================
+   Custom Dropdown (dashboard filters)
+   ============================================================ */
+function ddToggle(id) {
+  const wrap = document.getElementById(id);
+  const isOpen = wrap.classList.contains("open");
+  // Close all
+  document.querySelectorAll(".dd-wrap.open").forEach(w => w.classList.remove("open"));
+  if (!isOpen) wrap.classList.add("open");
+}
+
+function ddSelect(wrapId, val, label) {
+  const wrap = document.getElementById(wrapId);
+  wrap.querySelector(".dd-label").textContent = label;
+  wrap.querySelectorAll(".dd-opt").forEach(o => o.classList.toggle("selected", o.dataset.val === val));
+  wrap.dataset.value = val;
+  wrap.classList.remove("open");
+  if (wrapId === "ddCity" || wrapId === "ddBranch" || wrapId === "ddStatus") {
+    dApplyFilters();
+  }
+}
+
+function ddGetValue(wrapId) {
+  const wrap = document.getElementById(wrapId);
+  return wrap ? (wrap.dataset.value || "all") : "all";
+}
+
+// Click outside to close
+document.addEventListener("click", function(e) {
+  if (!e.target.closest(".dd-wrap")) {
+    document.querySelectorAll(".dd-wrap.open").forEach(w => w.classList.remove("open"));
+  }
+});
+
+/* ============================================================
    Dashboard Logic
    ============================================================ */
 let dCurrentSort = "new";
@@ -2196,24 +2245,31 @@ function dToggleCoverage(uid, bar) {
 }
 
 function dPopulateFilters(cityMap) {
-  const selB = document.getElementById("dFilterBranch");
-  const selC = document.getElementById("dFilterCity");
-  let co = '<option value="all">全部城市</option>';
+  const wrapC = document.getElementById("ddCity");
+  const menuC = wrapC.querySelector(".dd-menu");
+  let co = '<div class="dd-opt selected" data-val="all" onclick="ddSelect(\'ddCity\',\'all\',\'全部城市\')">全部城市</div>';
   for (const city of Object.keys(cityMap).sort()) {
-    co += '<option value="'+city+'">'+city+'</option>';
+    co += '<div class="dd-opt" data-val="'+city+'" onclick="ddSelect(\'ddCity\',\''+city+'\',\''+city+'\')">'+city+'</div>';
   }
-  selC.innerHTML = co;
+  menuC.innerHTML = co;
+  wrapC.querySelector(".dd-label").textContent = "全部城市";
+  wrapC.dataset.value = "all";
+
   const allB = [];
   for (const city of Object.keys(cityMap).sort()) {
     for (const bName of Object.keys(cityMap[city]).sort()) {
       allB.push({city, name: bName});
     }
   }
-  let bo = '<option value="all">全部网点</option>';
+  const wrapB = document.getElementById("ddBranch");
+  const menuB = wrapB.querySelector(".dd-menu");
+  let bo = '<div class="dd-opt selected" data-val="all" onclick="ddSelect(\'ddBranch\',\'all\',\'全部网点\')">全部网点</div>';
   for (const b of allB) {
-    bo += '<option value="'+b.name+'">'+b.name+'</option>';
+    bo += '<div class="dd-opt" data-val="'+b.name+'" onclick="ddSelect(\'ddBranch\',\''+b.name+'\',\''+b.name+'\')">'+b.name+'</div>';
   }
-  selB.innerHTML = bo;
+  menuB.innerHTML = bo;
+  wrapB.querySelector(".dd-label").textContent = "全部网点";
+  wrapB.dataset.value = "all";
 }
 
 function dToggleSort() {
@@ -2229,9 +2285,9 @@ function dApplyFilters() {
 }
 
 function dRenderTodos() {
-  const cityF = document.getElementById("dFilterCity").value;
-  const branchF = document.getElementById("dFilterBranch").value;
-  const statusF = document.getElementById("dFilterStatus").value;
+  const cityF = ddGetValue("ddCity");
+  const branchF = ddGetValue("ddBranch");
+  const statusF = ddGetValue("ddStatus");
 
   const items = [];
   for (const r of dAllRecords) {
