@@ -245,8 +245,11 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
       <span class="user-name" id="headerUserName"></span>
     </div>
     <div class="header-actions">
-      <button class="btn-icon" title="导出" onclick="exportData()">
+      <button class="btn-icon" title="导出Excel" onclick="exportData()">
         <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      </button>
+      <button class="btn-icon" title="导出看板数据" onclick="exportForDashboard()" style="background:#f97316;color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;height:auto">
+        📤 看板
       </button>
       <button class="btn-icon" title="导入" onclick="document.getElementById('importFile').click()">
         <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
@@ -1394,6 +1397,53 @@ async function exportData() {
   XLSX.utils.book_append_sheet(wb, ws, "拜访记录");
   XLSX.writeFile(wb, `拜访记录_${currentUser.name}_${new Date().toISOString().split("T")[0]}.xlsx`);
   showToast("导出成功！");
+}
+
+// ===== 导出看板数据（records.json + summary.json） =====
+async function exportForDashboard() {
+  if (!currentUser) { showToast("请先登录", true); return; }
+
+  const allRecords = await getAllRecords();
+
+  // === 1. 生成 records.json（全量记录，原始格式） ===
+  const recordsJson = JSON.stringify(allRecords, null, 2);
+  downloadBlob(recordsJson, "records.json", "application/json");
+
+  // === 2. 生成 summary.json（统计摘要） ===
+  const branchSet = new Set(allRecords.map(r => r.branch));
+  const citySet = new Set(allRecords.map(r => r.branchCity));
+  const tagCounts = {};
+  const cityCounts = {};
+  allRecords.forEach(r => {
+    (r.tags || []).forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; });
+    cityCounts[r.branchCity] = (cityCounts[r.branchCity] || 0) + 1;
+  });
+
+  const summary = {
+    totalRecords: allRecords.length,
+    branchCount: branchSet.size,
+    cityCount: citySet.size,
+    tagDistribution: tagCounts,
+    cityDistribution: cityCounts,
+    kpiSummary: { avg: 0, max: 0, min: 0, belowSixty: [] },
+    riskBranches: [],
+    lastUpdated: new Date().toISOString()
+  };
+
+  const summaryJson = JSON.stringify(summary, null, 2);
+  downloadBlob(summaryJson, "summary.json", "application/json");
+
+  showToast(`已导出 ${allRecords.length} 条记录 → 将2个JSON放入deploy/data/后运行publish.bat`);
+}
+
+function downloadBlob(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 async function importData(event) {
