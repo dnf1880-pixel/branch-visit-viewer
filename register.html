@@ -105,12 +105,21 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 .loc-btn:hover{border-color:var(--purple)}
 .loc-btn.loading{opacity:.6;pointer-events:none}
 .loc-btn svg{width:14px;height:14px}
+.branch-save-btn{display:inline-flex;align-items:center;gap:4px;background:var(--green-dim,#e8f5e9);color:var(--green,#2e7d32);padding:5px 12px;border-radius:var(--radius-sm,6px);cursor:pointer;font-size:.76rem;font-weight:500;transition:all .2s;white-space:nowrap;border:1px solid transparent}
+.branch-save-btn:hover{border-color:var(--green,#2e7d32);background:var(--green,#2e7d32);color:#fff}
+.branch-save-btn svg{width:13px;height:13px}
+.branch-save-btn.saved{background:var(--green,#2e7d32);color:#fff;pointer-events:none}
 
 /* AI Todos */
 .todo-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-top:6px}
 .todo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .todo-title{font-size:.85rem;font-weight:600;color:var(--pink);display:flex;align-items:center;gap:4px}
 .todo-title svg{width:16px;height:16px}
+.ai-toggle{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;color:var(--text3);cursor:pointer;user-select:none}
+.ai-toggle .switch-track{width:34px;height:20px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);position:relative;transition:all .2s;flex-shrink:0}
+.ai-toggle .switch-track.on{background:var(--pink-dim);border-color:var(--pink)}
+.ai-toggle .switch-knob{width:14px;height:14px;border-radius:50%;background:var(--text3);position:absolute;top:2px;left:2px;transition:all .2s}
+.ai-toggle .switch-track.on .switch-knob{background:var(--pink);left:17px}
 .todo-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
 .todo-item:last-child{border-bottom:none}
 .todo-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
@@ -245,13 +254,13 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
       <span class="user-name" id="headerUserName"></span>
     </div>
     <div class="header-actions">
-      <button class="btn-icon" title="看板" onclick="exportForDashboard()">
+      <button class="btn-icon" title="看板" onclick="location.href='dashboard.html'">
         <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
       </button>
       <button class="btn-icon" title="导出Excel" onclick="exportData()">
         <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
       </button>
-      <button class="btn-icon" title="导入" onclick="document.getElementById('importFile').click()">
+      <button class="btn-icon" title="导入Excel" onclick="document.getElementById('importFile').click()">
         <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
       </button>
     </div>
@@ -323,6 +332,14 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
         <input type="hidden" id="longitude">
       </div>
 
+      <!-- 网点信息保存 -->
+      <div class="form-group" style="margin-bottom:8px;display:flex;justify-content:flex-end">
+        <button type="button" class="branch-save-btn" id="branchSaveBtn" onclick="saveBranchInfo()" title="将当前联系人/电话/地址保存为网点默认信息">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+          保存网点信息
+        </button>
+      </div>
+
       <!-- 关键问题备注 -->
       <div class="form-group">
         <label class="form-label">网点关键问题备注</label>
@@ -335,18 +352,25 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
         <div class="tags-wrap" id="tagsWrap"></div>
       </div>
 
-      <!-- AI 待办 -->
-      <div class="form-group">
-        <div id="todoSection" style="display:none">
-          <div class="todo-section">
-            <div class="todo-header">
-              <div class="todo-title">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-                AI 智能待办 <span style="font-size:.7rem;color:var(--text3);margin-left:4px">·知识库驱动</span>
-              </div>
+      <!-- AI 待办开关（始终可见） -->
+      <div class="form-group" style="margin-bottom:8px">
+        <span class="ai-toggle" onclick="toggleAITodo(event)" title="手动开启/关闭AI智能待办生成" style="font-size:.82rem;color:var(--text2);display:inline-flex;align-items:center;gap:6px">
+          🤖 AI 智能待办
+          <span id="aiToggleLabel" style="font-size:.68rem;color:var(--text3)">已关闭</span>
+          <span class="switch-track" id="aiSwitchTrack"><span class="switch-knob"></span></span>
+        </span>
+      </div>
+
+      <!-- AI 待办内容 -->
+      <div id="todoSection" style="display:none">
+        <div class="todo-section">
+          <div class="todo-header">
+            <div class="todo-title">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+              AI 智能待办
             </div>
-            <div id="todoList"></div>
           </div>
+          <div id="todoList"></div>
         </div>
       </div>
 
@@ -389,50 +413,97 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
    Constants & Config
    ============================================================ */
 const BRANCHES = [
-  {city:"恩施市",name:"恩施",full:"湖北省恩施市",contact:"谭杰",phone:"13517135666",address:"恩施市松树坪传化物流港2号楼圆通快递"},
-  {city:"恩施市",name:"建始",full:"湖北省恩施州建始县",contact:"陈卫军",phone:"18972410596",address:"恩施州建始县业州镇烟墩大道北段冷链物流园108号-109号"},
-  {city:"恩施市",name:"利川",full:"湖北省恩施自治州利川市",contact:"张帆",phone:"15629232777",address:"恩施市利川市蓝天路1号"},
-  {city:"宜昌市",name:"宜昌东站",full:"湖北省宜昌市东站",contact:"刘杰",phone:"13296760922",address:"宜昌市片区东站路188号三峡物流园D区D3072"},
-  {city:"宜昌市",name:"猇亭",full:"湖北省宜昌市猇亭",contact:"刘涛涛",phone:"18672907000",address:"湖北省宜昌市猇亭区猇亭大道189号三峡汽贸大世界6号楼1层"},
-  {city:"宜昌市",name:"宜昌高新区",full:"湖北省宜昌市高新区",contact:"梅艺",phone:"18671809353",address:"湖北省宜昌市西陵区中南路81号三峡果蔬交易中心仓库楼负一层11-14仓库"},
-  {city:"宜昌市",name:"三峡大学",full:"湖北省宜昌市三峡大学",contact:"萧春林",phone:"18007155769",address:"宜昌市黄河路40号达润汽修旁圆通速递"},
-  {city:"宜昌市",name:"点军区",full:"湖北省宜昌市点军区",contact:"周宇飞",phone:"13277172725",address:"宜昌市点军区将军路299号"},
-  {city:"宜昌市",name:"夷陵",full:"湖北省宜昌市夷陵区",contact:"萧春林",phone:"18007155769",address:"宜昌市夷陵区平湖大道52号"},
-  {city:"宜昌市",name:"宜都",full:"湖北省宜昌市宜都市",contact:"杨永成",phone:"18062992673",address:"宜都市城乡路241"},
-  {city:"宜昌市",name:"当阳",full:"湖北省宜昌市当阳市",contact:"何岸",phone:"13872665599",address:"湖北省宜昌市当阳市长坂路286号迪腾物流园8号仓库"},
-  {city:"宜昌市",name:"枝江",full:"湖北省宜昌市枝江市",contact:"毛晓燕",phone:"18871593852",address:"宜昌市枝江市双寿桥路龙鑫广场一号库"},
-  {city:"宜昌市",name:"秭归",full:"湖北省宜昌市秭归县",contact:"潘亿君",phone:"19092599778",address:"秭归县脐橙小镇游乐场对面B-105"},
-  {city:"恩施市",name:"野三关",full:"湖北省恩施自治州巴东县野三关",contact:"向海群",phone:"15172928866",address:"恩施市巴东县野三关镇高速路客运站旁"},
-  {city:"恩施市",name:"来凤",full:"湖北省恩施自治州来凤县",contact:"廖英杰",phone:"13886770681",address:"恩施市来凤县教育城电商产业园"},
-  {city:"恩施市",name:"巴东",full:"湖北省恩施市巴东县",contact:"王爱春",phone:"13971892030",address:"巴东县万福路118号金山商贸城圆通快递"},
-  {city:"恩施市",name:"宣恩",full:"湖北省恩施市宣恩县",contact:"王孔骏",phone:"17571010103",address:"恩施市宣恩县莲花坝村原复烤厂"},
-  {city:"恩施市",name:"咸丰",full:"湖北省恩施市咸丰县",contact:"蒋智生",phone:"13477201480",address:"恩施市咸丰县高乐山镇杨泗坝杨官大道5号"},
-  {city:"宜昌市",name:"五峰",full:"湖北省宜昌市五峰县",contact:"胡云峰",phone:"17771283765",address:"五峰土家族自治县渔洋关镇天池路28号"},
-  {city:"宜昌市",name:"远安",full:"湖北省宜昌市远安县",contact:"付丰琴",phone:"15572765505",address:"宜昌市远安县鸣凤镇临沮大道1137号"},
-  {city:"宜昌市",name:"兴山",full:"湖北省宜昌市兴山县",contact:"李祖君",phone:"15572702999",address:"宜昌市兴山县古夫镇香溪大道5号"},
-  {city:"宜昌市",name:"长阳",full:"湖北省宜昌市长阳县",contact:"谢劲松",phone:"13387288388",address:"长阳龙舟坪镇何家坪村8组833号"},
-  {city:"恩施市",name:"鹤峰",full:"湖北省恩施市鹤峰县",contact:"胡明权",phone:"18986853839",address:"恩施市鹤峰县中坝路20号"},
-  {city:"荆州市",name:"荆州城区",full:"湖北省荆州市城区",contact:"吴学亮",phone:"15057800083",address:"湖北省荆州市经济技术开发区联合街道上海大道86号圆捷通物流有限公司1号楼2楼"},
-  {city:"荆州市",name:"沙北新区",full:"湖北省荆州市沙北新区",contact:"吕彪",phone:"17671637610",address:"湖北省荆州市沙市区关沮镇园林北路122号南塑汽车零部件制造公司8号仓库"},
-  {city:"荆州市",name:"古城北",full:"湖北省荆州市古城北",contact:"朱义姣",phone:"13997638459",address:"湖北省荆州市荆州区郢城镇荆州大道49号浩然物流园2号仓库11-16南面楼"},
-  {city:"荆州市",name:"长港路",full:"湖北省荆州市长港路",contact:"王永吉",phone:"17762859985",address:"沙市区顺驰太阳城南门"},
-  {city:"荆州市",name:"荆州大学城",full:"湖北省荆州市大学城",contact:"叶方圆",phone:"15067370790",address:"湖北省荆州市经济技术开发区联合街道上海大道86号圆通速递荆州集运中心一层A区"},
-  {city:"荆州市",name:"江津西路",full:"湖北省荆州市江津西路",contact:"王诗桥",phone:"13593832503",address:"湖北省荆州市荆州区郢城镇荆州大道66号"},
-  {city:"荆州市",name:"武德路",full:"湖北省荆州市沙市区武德路",contact:"李小冬",phone:"18672119977",address:"湖北省荆州市沙市区武德路与北京路交叉口蓝星陶瓷城"},
-  {city:"荆州市",name:"北京路",full:"湖北省荆州市北京路",contact:"杨军人",phone:"13872302672",address:"湖北省荆州市沙市区跃进路16号锦绣荆江"},
-  {city:"荆州市",name:"开发区一部",full:"湖北省荆州市开发区一部",contact:"王尚军",phone:"15927809479",address:"江津东路95号长江物流园3号仓库"},
-  {city:"荆州市",name:"公安",full:"湖北省荆州市公安县",contact:"胡磊",phone:"18086205397",address:"湖北省荆州市公安县潺陵大道今非塑业院内"},
-  {city:"荆州市",name:"江陵",full:"湖北省荆州市江陵县",contact:"罗海燕",phone:"13872353337",address:"荆河路6号电商产业园"},
-  {city:"荆州市",name:"石首",full:"湖北省荆州市石首市",contact:"刘克军",phone:"13135792098",address:"石首市站后路长兴梦辉物流园B2"},
-  {city:"荆州市",name:"松滋",full:"湖北省荆州市松滋市",contact:"李健",phone:"13308614888",address:"松滋市新江口街道望月村委会"},
-  {city:"荆州市",name:"监利",full:"湖北省荆州市监利县",contact:"黄贻桃",phone:"13886581951",address:"湖北省监利市容城镇城东工业园创业路与荆南路交汇处"},
-  {city:"荆门市",name:"荆门城区",full:"湖北省荆门市城区",contact:"孙海波",phone:"18672426266",address:"荆门市东宝区牌楼镇新生路以北，物流园路以东3号仓库"},
-  {city:"荆门市",name:"沙洋",full:"湖北省荆门市沙洋",contact:"萧春林",phone:"18007155769",address:"湖北省荆门市沙洋县开源大道48号(原裕大华纺织)第04幢"},
-  {city:"荆门市",name:"钟祥",full:"湖北省荆门市钟祥市",contact:"任维佳",phone:"13337472065",address:"钟祥市西环三路一公里共配"},
-  {city:"潜江市",name:"潜江",full:"湖北省潜江市",contact:"田亚东",phone:"18995995768",address:"湖北省潜江市杨市办事处奥体路566号"},
-  {city:"荆州市",name:"洪湖",full:"湖北省荆州市洪湖市",contact:"颜泽刚",phone:"18007118008",address:"湖北省荆州市洪湖市文泉大道58号"},
-  {city:"荆门市",name:"京山",full:"湖北省荆门市京山县",contact:"李军",phone:"18972881111",address:"湖北省京山市金瑞物流园"}
+  {city:"恩施市",name:"恩施",full:"湖北省恩施市"},
+  {city:"恩施市",name:"建始",full:"湖北省恩施州建始县"},
+  {city:"恩施市",name:"利川",full:"湖北省恩施自治州利川市"},
+  {city:"宜昌市",name:"宜昌东站",full:"湖北省宜昌市东站"},
+  {city:"宜昌市",name:"猇亭",full:"湖北省宜昌市猇亭"},
+  {city:"宜昌市",name:"宜昌高新区",full:"湖北省宜昌市高新区"},
+  {city:"宜昌市",name:"三峡大学",full:"湖北省宜昌市三峡大学"},
+  {city:"宜昌市",name:"点军区",full:"湖北省宜昌市点军区"},
+  {city:"宜昌市",name:"夷陵",full:"湖北省宜昌市夷陵区"},
+  {city:"宜昌市",name:"宜都",full:"湖北省宜昌市宜都市"},
+  {city:"宜昌市",name:"当阳",full:"湖北省宜昌市当阳市"},
+  {city:"宜昌市",name:"枝江",full:"湖北省宜昌市枝江市"},
+  {city:"宜昌市",name:"秭归",full:"湖北省宜昌市秭归县"},
+  {city:"恩施市",name:"野三关",full:"湖北省恩施自治州巴东县野三关"},
+  {city:"恩施市",name:"来凤",full:"湖北省恩施自治州来凤县"},
+  {city:"恩施市",name:"巴东",full:"湖北省恩施市巴东县"},
+  {city:"恩施市",name:"宣恩",full:"湖北省恩施市宣恩县"},
+  {city:"恩施市",name:"咸丰",full:"湖北省恩施市咸丰县"},
+  {city:"宜昌市",name:"五峰",full:"湖北省宜昌市五峰县"},
+  {city:"宜昌市",name:"远安",full:"湖北省宜昌市远安县"},
+  {city:"宜昌市",name:"兴山",full:"湖北省宜昌市兴山县"},
+  {city:"宜昌市",name:"长阳",full:"湖北省宜昌市长阳县"},
+  {city:"恩施市",name:"鹤峰",full:"湖北省恩施市鹤峰县"},
+  {city:"荆州市",name:"荆州城区",full:"湖北省荆州市城区"},
+  {city:"荆州市",name:"沙北新区",full:"湖北省荆州市沙北新区"},
+  {city:"荆州市",name:"古城北",full:"湖北省荆州市古城北"},
+  {city:"荆州市",name:"长港路",full:"湖北省荆州市长港路"},
+  {city:"荆州市",name:"荆州大学城",full:"湖北省荆州市大学城"},
+  {city:"荆州市",name:"江津西路",full:"湖北省荆州市江津西路"},
+  {city:"荆州市",name:"武德路",full:"湖北省荆州市沙市区武德路"},
+  {city:"荆州市",name:"北京路",full:"湖北省荆州市北京路"},
+  {city:"荆州市",name:"开发区一部",full:"湖北省荆州市开发区一部"},
+  {city:"荆州市",name:"公安",full:"湖北省荆州市公安县"},
+  {city:"荆州市",name:"江陵",full:"湖北省荆州市江陵县"},
+  {city:"荆州市",name:"石首",full:"湖北省荆州市石首市"},
+  {city:"荆州市",name:"松滋",full:"湖北省荆州市松滋市"},
+  {city:"荆州市",name:"监利",full:"湖北省荆州市监利县"},
+  {city:"荆门市",name:"荆门城区",full:"湖北省荆门市城区"},
+  {city:"荆门市",name:"沙洋",full:"湖北省荆门市沙洋"},
+  {city:"荆门市",name:"钟祥",full:"湖北省荆门市钟祥市"},
+  {city:"潜江市",name:"潜江",full:"湖北省潜江市"},
+  {city:"荆州市",name:"洪湖",full:"湖北省荆州市洪湖市"},
+  {city:"荆门市",name:"京山",full:"湖北省荆门市京山县"}
 ];
+
+// 网点联系人种子数据 — 首次启动自动写入 IndexedDB
+const BRANCH_CONTACTS_SEED = {
+  "恩施市 · 恩施":{contact:"谭杰",phone:"13517135666",address:"恩施市松树坪传化物流港2号楼圆通快递"},
+  "恩施市 · 建始":{contact:"陈卫军",phone:"18972410596",address:"恩施州建始县业州镇烟墩大道北段冷链物流园108号-109号"},
+  "恩施市 · 利川":{contact:"张帆",phone:"15629232777",address:"恩施市利川市蓝天路1号"},
+  "宜昌市 · 宜昌东站":{contact:"刘杰",phone:"13296760922",address:"宜昌市片区东站路188号三峡物流园D区D3072"},
+  "宜昌市 · 猇亭":{contact:"刘涛涛",phone:"18672907000",address:"湖北省宜昌市猇亭区猇亭大道189号三峡汽贸大世界6号楼1层"},
+  "宜昌市 · 宜昌高新区":{contact:"梅艺",phone:"18671809353",address:"湖北省宜昌市西陵区中南路81号三峡果蔬交易中心仓库楼负一层11-14仓库"},
+  "宜昌市 · 三峡大学":{contact:"萧春林",phone:"18007155769",address:"宜昌市黄河路40号达润汽修旁圆通速递"},
+  "宜昌市 · 点军区":{contact:"周宇飞",phone:"13277172725",address:"宜昌市点军区将军路299号"},
+  "宜昌市 · 夷陵":{contact:"萧春林",phone:"18007155769",address:"宜昌市夷陵区平湖大道52号"},
+  "宜昌市 · 宜都":{contact:"杨永成",phone:"18062992673",address:"宜都市城乡路241"},
+  "宜昌市 · 当阳":{contact:"何岸",phone:"13872665599",address:"湖北省宜昌市当阳市长坂路286号迪腾物流园8号仓库"},
+  "宜昌市 · 枝江":{contact:"毛晓燕",phone:"18871593852",address:"宜昌市枝江市双寿桥路龙鑫广场一号库"},
+  "宜昌市 · 秭归":{contact:"潘亿君",phone:"19092599778",address:"秭归县脐橙小镇游乐场对面B-105"},
+  "恩施市 · 野三关":{contact:"向海群",phone:"15172928866",address:"恩施市巴东县野三关镇高速路客运站旁"},
+  "恩施市 · 来凤":{contact:"廖英杰",phone:"13886770681",address:"恩施市来凤县教育城电商产业园"},
+  "恩施市 · 巴东":{contact:"王爱春",phone:"13971892030",address:"巴东县万福路118号金山商贸城圆通快递"},
+  "恩施市 · 宣恩":{contact:"王孔骏",phone:"17571010103",address:"恩施市宣恩县莲花坝村原复烤厂"},
+  "恩施市 · 咸丰":{contact:"蒋智生",phone:"13477201480",address:"恩施市咸丰县高乐山镇杨泗坝杨官大道5号"},
+  "宜昌市 · 五峰":{contact:"胡云峰",phone:"17771283765",address:"五峰土家族自治县渔洋关镇天池路28号"},
+  "宜昌市 · 远安":{contact:"付丰琴",phone:"15572765505",address:"宜昌市远安县鸣凤镇临沮大道1137号"},
+  "宜昌市 · 兴山":{contact:"李祖君",phone:"15572702999",address:"宜昌市兴山县古夫镇香溪大道5号"},
+  "宜昌市 · 长阳":{contact:"谢劲松",phone:"13387288388",address:"长阳龙舟坪镇何家坪村8组833号"},
+  "恩施市 · 鹤峰":{contact:"胡明权",phone:"18986853839",address:"恩施市鹤峰县中坝路20号"},
+  "荆州市 · 荆州城区":{contact:"吴学亮",phone:"15057800083",address:"湖北省荆州市经济技术开发区联合街道上海大道86号圆捷通物流有限公司1号楼2楼"},
+  "荆州市 · 沙北新区":{contact:"吕彪",phone:"17671637610",address:"湖北省荆州市沙市区关沮镇园林北路122号南塑汽车零部件制造公司8号仓库"},
+  "荆州市 · 古城北":{contact:"朱义姣",phone:"13997638459",address:"湖北省荆州市荆州区郢城镇荆州大道49号浩然物流园2号仓库11-16南面楼"},
+  "荆州市 · 长港路":{contact:"王永吉",phone:"17762859985",address:"沙市区顺驰太阳城南门"},
+  "荆州市 · 荆州大学城":{contact:"叶方圆",phone:"15067370790",address:"湖北省荆州市经济技术开发区联合街道上海大道86号圆通速递荆州集运中心一层A区"},
+  "荆州市 · 江津西路":{contact:"王诗桥",phone:"13593832503",address:"湖北省荆州市荆州区郢城镇荆州大道66号"},
+  "荆州市 · 武德路":{contact:"李小冬",phone:"18672119977",address:"湖北省荆州市沙市区武德路与北京路交叉口蓝星陶瓷城"},
+  "荆州市 · 北京路":{contact:"杨军人",phone:"13872302672",address:"湖北省荆州市沙市区跃进路16号锦绣荆江"},
+  "荆州市 · 开发区一部":{contact:"王尚军",phone:"15927809479",address:"江津东路95号长江物流园3号仓库"},
+  "荆州市 · 公安":{contact:"胡磊",phone:"18086205397",address:"湖北省荆州市公安县潺陵大道今非塑业院内"},
+  "荆州市 · 江陵":{contact:"罗海燕",phone:"13872353337",address:"荆河路6号电商产业园"},
+  "荆州市 · 石首":{contact:"刘克军",phone:"13135792098",address:"石首市站后路长兴梦辉物流园B2"},
+  "荆州市 · 松滋":{contact:"李健",phone:"13308614888",address:"松滋市新江口街道望月村委会"},
+  "荆州市 · 监利":{contact:"黄贻桃",phone:"13886581951",address:"湖北省监利市容城镇城东工业园创业路与荆南路交汇处"},
+  "荆门市 · 荆门城区":{contact:"孙海波",phone:"18672426266",address:"荆门市东宝区牌楼镇新生路以北，物流园路以东3号仓库"},
+  "荆门市 · 沙洋":{contact:"萧春林",phone:"18007155769",address:"湖北省荆门市沙洋县开源大道48号(原裕大华纺织)第04幢"},
+  "荆门市 · 钟祥":{contact:"任维佳",phone:"13337472065",address:"钟祥市西环三路一公里共配"},
+  "潜江市 · 潜江":{contact:"田亚东",phone:"18995995768",address:"湖北省潜江市杨市办事处奥体路566号"},
+  "荆州市 · 洪湖":{contact:"颜泽刚",phone:"18007118008",address:"湖北省荆州市洪湖市文泉大道58号"},
+  "荆门市 · 京山":{contact:"李军",phone:"18972881111",address:"湖北省京山市金瑞物流园"}
+};
 
 const TAG_OPTIONS = [
   "服务品质","散单取件","时效管控","遗失破损","工单CCR",
@@ -618,8 +689,9 @@ const TMAP_KEY = "OB4BZ-D4W3U-B7VVO-4PJWW-6TKDJ-WPB77";
    IndexedDB
    ============================================================ */
 const DB_NAME = "VisitRecordDB";
-const DB_VERSION = 1;
+const DB_VERSION = 3;
 const STORE_NAME = "records";
+const CFG_STORE = "branch_configs";
 let db = null;
 
 function openDB() {
@@ -627,15 +699,34 @@ function openDB() {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = (e) => {
       const database = e.target.result;
-      if (!database.objectStoreNames.contains(STORE_NAME)) {
+      // v0 → v1: records store + indexes
+      if (e.oldVersion < 1) {
         const store = database.createObjectStore(STORE_NAME, { keyPath: "id" });
         store.createIndex("visitor", "visitor", { unique: false });
         store.createIndex("branch", "branch", { unique: false });
         store.createIndex("date", "date", { unique: false });
       }
+      // v1 → v2: branch_configs store
+      if (e.oldVersion < 2 && !database.objectStoreNames.contains(CFG_STORE)) {
+        database.createObjectStore(CFG_STORE, { keyPath: "branchKey" });
+      }
+      // v2 → v3: repair missing branch_configs from broken v2 upgrades
+      if (e.oldVersion < 3 && !database.objectStoreNames.contains(CFG_STORE)) {
+        database.createObjectStore(CFG_STORE, { keyPath: "branchKey" });
+      }
     };
     req.onsuccess = (e) => { db = e.target.result; resolve(db); };
     req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function getAllRecords() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
   });
 }
 
@@ -654,27 +745,72 @@ function dbOp(mode, fn) {
   });
 }
 
-function getAllRecords() {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const store = tx.objectStore(STORE_NAME);
-    const req = store.getAll();
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
 function addRecord(record) {
   return dbOp("readwrite", (store) => store.add(record));
+}
+
+async function addRecordAndBackup(record) {
+  await addRecord(record);
+  await forceMirror();
 }
 
 function updateRecord(record) {
   return dbOp("readwrite", (store) => store.put(record));
 }
 
+async function updateRecordAndBackup(record) {
+  await updateRecord(record);
+  await forceMirror();
+}
+
 function deleteRecord(id) {
   return dbOp("readwrite", (store) => store.delete(id));
 }
+
+async function deleteRecordAndBackup(id) {
+  await deleteRecord(id);
+  await forceMirror();
+}
+
+/* ============================================================
+   localStorage Mirror — two tiers:
+   forceMirror: immediate write after critical ops (add/update/delete)
+   scheduleMirror: debounced for non-critical paths
+   ============================================================ */
+let mirrorTimer = null;
+
+async function forceMirror() {
+  if (mirrorTimer) clearTimeout(mirrorTimer);
+  try {
+    const records = await getAllRecords();
+    mirrorToLocalStorage(records);
+  } catch {}
+}
+
+function scheduleMirror() {
+  clearTimeout(mirrorTimer);
+  mirrorTimer = setTimeout(async () => {
+    try {
+      const records = await getAllRecords();
+      mirrorToLocalStorage(records);
+    } catch {}
+  }, 3000);
+}
+
+window.addEventListener("beforeunload", () => {
+  // Flush any pending mirror synchronously
+  if (mirrorTimer) {
+    clearTimeout(mirrorTimer);
+    try {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onsuccess = () => {
+        const tx = req.result.transaction(STORE_NAME, "readonly");
+        const records = tx.objectStore(STORE_NAME).getAll();
+        records.onsuccess = () => mirrorToLocalStorage(records.result || []);
+      };
+    } catch {}
+  }
+});
 
 /* ============================================================
    State
@@ -686,6 +822,7 @@ let autoTags = new Set(); // tags auto-extracted from notes
 let generatedTodos = [];
 let checkedTodos = new Set();
 let editingRecordId = null; // null = new, string = editing
+const branchContacts = new Map(); // 网点联系人内存缓存，O(1) 同步读取
 
 /* ============================================================
    Login
@@ -741,6 +878,10 @@ function toggleLogoutMenu() {
 async function init() {
   await openDB();
 
+  // Seed + cache are non-critical: failure won't block the app
+  try { await seedBranchConfigs(); } catch (e) { console.warn("[Init] seedBranchConfigs failed:", e); }
+  try { await loadBranchContacts(); } catch (e) { console.warn("[Init] loadBranchContacts failed:", e); }
+
   if (checkLogin()) {
     enterApp();
   }
@@ -775,11 +916,62 @@ async function init() {
       menu.classList.remove("show");
     }
   });
+
+  // Init AI toggle UI
+  updateAIToggleUI();
+
+  // Auto backup check
+  maybeAutoBackup();
 }
 
 function initFormDefaults() {
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("visitDate").value = today;
+}
+
+/* ============================================================
+   Auto Backup — daily first-open JSON dump + localStorage mirror
+   ============================================================ */
+async function maybeAutoBackup() {
+  const today = new Date().toISOString().slice(0, 10);
+  const lastBackup = localStorage.getItem("lastBackupDate");
+
+  // Check if localStorage has backup but IndexedDB is empty (data recovery)
+  const records = await getAllRecords();
+  if (records.length === 0) {
+    const saved = localStorage.getItem("recordsBackup");
+    if (saved) {
+      try {
+        const backup = JSON.parse(saved);
+        if (backup.length > 0) {
+          if (confirm("检测到本地备份数据包含 " + backup.length + " 条拜访记录，是否恢复？")) {
+            for (const r of backup) {
+              delete r._backupAt;
+              await addRecord(r);
+            }
+            showToast("已恢复 " + backup.length + " 条记录");
+            renderTodayRecords();
+            renderHistory();
+          }
+        }
+      } catch(e) { /* ignore corrupt backup */ }
+    }
+  }
+
+  // Daily first-open backup: only mirror to localStorage, no auto-download
+  if (records.length > 0 && lastBackup !== today) {
+    mirrorToLocalStorage(records);
+    localStorage.setItem("lastBackupDate", today);
+  }
+}
+
+function mirrorToLocalStorage(records) {
+  try {
+    const data = records.map(r => ({...r, _backupAt: new Date().toISOString()}));
+    localStorage.setItem("recordsBackup", JSON.stringify(data));
+  } catch(e) {
+    // localStorage may be full, ignore
+  }
 }
 
 /* ============================================================
@@ -797,9 +989,11 @@ function renderBranchOptions(list) {
   const container = document.getElementById("branchOptions");
   container.innerHTML = list.map(b => {
     const isSelected = selectedBranch && selectedBranch.name === b.name && selectedBranch.city === b.city;
+    const key = branchLabel(b);
+    const info = branchContacts.get(key) || {};
     return `<div class="select-option${isSelected ? ' selected' : ''}" onclick='selectBranch(${JSON.stringify(b).replace(/'/g,"&#39;")})'>
       <div><span class="opt-city">${escapeHtml(b.city)}</span>${escapeHtml(b.name)}</div>
-      <div class="opt-sub">${escapeHtml(b.contact)} ${escapeHtml(b.phone)}</div>
+      <div class="opt-sub">${escapeHtml(info.contact || '')} ${escapeHtml(info.phone || '')}</div>
     </div>`;
   }).join("");
 }
@@ -835,14 +1029,110 @@ function filterBranches() {
 
 function selectBranch(b) {
   selectedBranch = b;
-  const label = branchLabel(b);
-  document.getElementById("branchDisplay").textContent = label;
+  const key = branchLabel(b);
+  document.getElementById("branchDisplay").textContent = key;
   document.getElementById("branchDisplay").style.color = "var(--text)";
-  document.getElementById("branchValue").value = label;
-  document.getElementById("contactName").value = b.contact || "";
-  document.getElementById("contactPhone").value = b.phone || "";
-  document.getElementById("address").value = b.address || "";
+  document.getElementById("branchValue").value = key;
+
+  // O(1) 同步读取内存缓存
+  const info = branchContacts.get(key) || {};
+  document.getElementById("contactName").value = info.contact || "";
+  document.getElementById("contactPhone").value = info.phone || "";
+  document.getElementById("address").value = info.address || "";
+
+  // Reset save button to default state
+  const saveBtn = document.getElementById("branchSaveBtn");
+  saveBtn.classList.remove("saved");
+  saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> 保存网点信息';
+
   closeBranchDropdown();
+}
+
+/* ============================================================
+   Branch config persistence (IndexedDB)
+   ============================================================ */
+function saveBranchConfig(branchKey, data) {
+  return new Promise((resolve, reject) => {
+    if (!db) { reject(new Error("数据库未就绪")); return; }
+    if (!db.objectStoreNames.contains(CFG_STORE)) { reject(new Error("branch_configs 存储不存在")); return; }
+    const tx = db.transaction(CFG_STORE, "readwrite");
+    const store = tx.objectStore(CFG_STORE);
+    const record = { branchKey, ...data, updatedAt: new Date().toISOString() };
+    const req = store.put(record);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveBranchInfo() {
+  if (!selectedBranch) { showToast("请先选择网点", true); return; }
+  const key = branchLabel(selectedBranch);
+  const data = {
+    contact: document.getElementById("contactName").value.trim(),
+    phone: document.getElementById("contactPhone").value.trim(),
+    address: document.getElementById("address").value.trim()
+  };
+  if (!data.contact && !data.phone && !data.address) {
+    showToast("联系人/电话/地址均为空，无需保存", true);
+    return;
+  }
+
+  try {
+    await saveBranchConfig(key, data);
+    // 即时更新内存缓存，无需等待下次 load
+    branchContacts.set(key, data);
+    const btn = document.getElementById("branchSaveBtn");
+    btn.classList.add("saved");
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 已保存';
+    setTimeout(() => {
+      btn.classList.remove("saved");
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> 保存网点信息';
+    }, 2000);
+    showToast("已保存 " + key + " 的联系人/电话/地址");
+  } catch (e) {
+    showToast("保存失败：" + e.message, true);
+  }
+}
+
+/* ============================================================
+   Seed + Load branch contacts into memory Map
+   ============================================================ */
+async function seedBranchConfigs() {
+  const tx = db.transaction(CFG_STORE, "readwrite");
+  const store = tx.objectStore(CFG_STORE);
+  const allReq = store.getAll();
+  const existing = await new Promise((resolve) => {
+    allReq.onsuccess = () => resolve(allReq.result || []);
+    allReq.onerror = () => resolve([]);
+  });
+  const existingKeys = new Set(existing.map(r => r.branchKey));
+  let seeded = 0;
+  for (const [key, data] of Object.entries(BRANCH_CONTACTS_SEED)) {
+    if (!existingKeys.has(key)) {
+      store.put({ branchKey: key, ...data, updatedAt: new Date().toISOString() });
+      seeded++;
+    }
+  }
+  await new Promise((resolve, reject) => {
+    tx.oncomplete = resolve;
+    tx.onerror = reject;
+  });
+  if (seeded > 0) console.log("[BranchContacts] Seeded " + seeded + " new entries");
+}
+
+async function loadBranchContacts() {
+  const tx = db.transaction(CFG_STORE, "readonly");
+  const store = tx.objectStore(CFG_STORE);
+  const allReq = store.getAll();
+  const records = await new Promise((resolve) => {
+    allReq.onsuccess = () => resolve(allReq.result || []);
+    allReq.onerror = () => resolve([]);
+  });
+  branchContacts.clear();
+  records.forEach(r => {
+    branchContacts.set(r.branchKey, { contact: r.contact || "", phone: r.phone || "", address: r.address || "" });
+  });
+  console.log("[BranchContacts] Loaded " + branchContacts.size + " entries into cache");
 }
 
 /* ============================================================
@@ -895,10 +1185,41 @@ function extractTagsFromNotes(notes) {
 /* ============================================================
    AI Todo Generation
    ============================================================ */
+/* ============================================================
+   AI Todo Toggle
+   ============================================================ */
+function isAITodoEnabled() {
+  return localStorage.getItem("aiTodoEnabled") === "true";
+}
+
+function toggleAITodo(event) {
+  event.stopPropagation();
+  const current = isAITodoEnabled();
+  localStorage.setItem("aiTodoEnabled", current ? "false" : "true");
+  updateAIToggleUI();
+  if (!current) {
+    // Just turned ON → trigger generation
+    onNotesInput();
+  } else {
+    // Just turned OFF → hide section
+    document.getElementById("todoSection").style.display = "none";
+    generatedTodos = [];
+    checkedTodos.clear();
+  }
+}
+
+function updateAIToggleUI() {
+  const enabled = isAITodoEnabled();
+  const track = document.getElementById("aiSwitchTrack");
+  const label = document.getElementById("aiToggleLabel");
+  track.classList.toggle("on", enabled);
+  label.textContent = enabled ? "已开启" : "已关闭";
+}
+
 function onNotesInput() {
   const notes = document.getElementById("notes").value.trim();
 
-  // Auto-extract tags
+  // Auto-extract tags (always active)
   const newAutoTags = extractTagsFromNotes(notes);
   // Remove old auto tags that are no longer matched, but keep manually selected ones
   autoTags.forEach(t => {
@@ -911,13 +1232,13 @@ function onNotesInput() {
   // Auto tags always show, but don't override manual deselection
   renderTags();
 
-  // Generate todos
-  generateTodos();
+  // Generate todos (only if AI toggle is ON)
+  if (isAITodoEnabled()) generateTodos();
 }
 
 function generateTodos() {
   const notes = document.getElementById("notes").value.trim();
-  if (!notes) {
+  if (!notes || !isAITodoEnabled()) {
     document.getElementById("todoSection").style.display = "none";
     generatedTodos = [];
     checkedTodos.clear();
@@ -1095,7 +1416,7 @@ async function handleSubmit(e) {
   const isUpdate = !!editingRecordId;
 
   const record = {
-    id: isUpdate ? editingRecordId : Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
+    id: isUpdate ? editingRecordId : Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     visitor: currentUser.name,
     empNo: currentUser.empNo,
     branch: branchLabel(selectedBranch),
@@ -1110,16 +1431,20 @@ async function handleSubmit(e) {
     notes: document.getElementById("notes").value.trim(),
     tags: allTags,
     todos,
+    todoTask: document.getElementById("notes").value.trim(),
+    todoStatus: "progress",
+    todoRemark: "",
+    todoUpdatedAt: "",
     createdAt: isUpdate ? document.getElementById("editCreatedAt").value : new Date().toISOString(),
     updatedAt: isUpdate ? new Date().toISOString() : undefined
   };
 
   try {
     if (isUpdate) {
-      await updateRecord(record);
+      await updateRecordAndBackup(record);
       showToast("更新成功！");
     } else {
-      await addRecord(record);
+      await addRecordAndBackup(record);
       showToast("登记成功！");
     }
     resetForm();
@@ -1172,11 +1497,13 @@ async function loadRecordToForm(id) {
 
   editingRecordId = id;
 
-  // Find matching branch object
+  // Find matching branch object — if not found, create a minimal one for editing
   const branchObj = BRANCHES.find(b => branchLabel(b) === record.branch);
   if (branchObj) {
     selectBranch(branchObj);
   } else {
+    // Branch removed from list, create minimal reference to allow editing
+    selectedBranch = { city: record.branchCity || "", name: record.branchName || record.branch, contact: record.contact || "", phone: record.phone || "", address: record.address || "" };
     document.getElementById("branchDisplay").textContent = record.branch;
     document.getElementById("branchDisplay").style.color = "var(--text)";
     document.getElementById("branchValue").value = record.branch;
@@ -1354,7 +1681,7 @@ function confirmDelete(id) {
 
 async function doDelete(id) {
   try {
-    await deleteRecord(id);
+    await deleteRecordAndBackup(id);
     showToast("已删除");
     if (editingRecordId === id) resetForm();
     renderTodayRecords();
@@ -1389,6 +1716,8 @@ async function exportData() {
 
   const rows = records.map(r => ({
     "网点": r.branch,
+    "城市": r.branchCity || "",
+    "网点简称": r.branchName || "",
     "日期": r.date,
     "拜访人": r.visitor,
     "工号": r.empNo || "",
@@ -1399,7 +1728,11 @@ async function exportData() {
     "纬度": r.lat || "",
     "标签": (r.tags || []).join("、"),
     "关键问题备注": r.notes || "",
-    "待办事项": (r.todos || []).join("\n")
+    "待办事项": (r.todos || []).join("\n"),
+    "待办任务": r.todoTask || r.notes || "",
+    "待办状态": r.todoStatus || "progress",
+    "待办备注": r.todoRemark || "",
+    "待办更新时间": r.todoUpdatedAt || ""
   }));
 
   const ws = XLSX.utils.json_to_sheet(rows);
@@ -1407,53 +1740,6 @@ async function exportData() {
   XLSX.utils.book_append_sheet(wb, ws, "拜访记录");
   XLSX.writeFile(wb, `拜访记录_${currentUser.name}_${new Date().toISOString().split("T")[0]}.xlsx`);
   showToast("导出成功！");
-}
-
-// ===== 导出看板数据（records.json + summary.json） =====
-async function exportForDashboard() {
-  if (!currentUser) { showToast("请先登录", true); return; }
-
-  const allRecords = await getAllRecords();
-
-  // === 1. 生成 records.json（全量记录，原始格式） ===
-  const recordsJson = JSON.stringify(allRecords, null, 2);
-  downloadBlob(recordsJson, "records.json", "application/json");
-
-  // === 2. 生成 summary.json（统计摘要） ===
-  const branchSet = new Set(allRecords.map(r => r.branch));
-  const citySet = new Set(allRecords.map(r => r.branchCity));
-  const tagCounts = {};
-  const cityCounts = {};
-  allRecords.forEach(r => {
-    (r.tags || []).forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; });
-    cityCounts[r.branchCity] = (cityCounts[r.branchCity] || 0) + 1;
-  });
-
-  const summary = {
-    totalRecords: allRecords.length,
-    branchCount: branchSet.size,
-    cityCount: citySet.size,
-    tagDistribution: tagCounts,
-    cityDistribution: cityCounts,
-    kpiSummary: { avg: 0, max: 0, min: 0, belowSixty: [] },
-    riskBranches: [],
-    lastUpdated: new Date().toISOString()
-  };
-
-  const summaryJson = JSON.stringify(summary, null, 2);
-  downloadBlob(summaryJson, "summary.json", "application/json");
-
-  showToast(`已导出 ${allRecords.length} 条记录 → 将2个JSON放入deploy/data/后运行publish.bat`);
-}
-
-function downloadBlob(content, filename, mimeType) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 async function importData(event) {
@@ -1471,17 +1757,29 @@ async function importData(event) {
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws);
 
-    let count = 0;
+    // Build dedup set from existing records: date|visitor|branch
+    const existing = await getAllRecords();
+    const dedupKeys = new Set(
+      existing.map(r => [r.date, r.visitor || "", r.branch || ""].join("|"))
+    );
+
+    let count = 0, skipped = 0;
     for (const row of rows) {
       const branch = row["网点"] || row["branch"] || "";
       const date = row["日期"] || row["date"] || new Date().toISOString().split("T")[0];
       if (!branch) continue;
 
+      // Dedup: same date + visitor + branch → skip
+      const dedupKey = [date, currentUser.name, branch].join("|");
+      if (dedupKeys.has(dedupKey)) { skipped++; continue; }
+
       const record = {
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 6) + count,
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6) + count,
         visitor: currentUser.name,
         empNo: currentUser.empNo,
         branch,
+        branchCity: row["城市"] || row["branchCity"] || "",
+        branchName: row["网点简称"] || row["branchName"] || "",
         date,
         contact: row["联系人"] || row["contact"] || "",
         phone: row["联系电话"] || row["phone"] || "",
@@ -1491,14 +1789,21 @@ async function importData(event) {
         tags: parseTags(row["标签"] || row["tags"] || ""),
         notes: row["关键问题备注"] || row["notes"] || "",
         todos: parseTodos(row["待办事项"] || row["todos"] || ""),
+        todoTask: row["待办任务"] || row["todoTask"] || (row["关键问题备注"] || row["notes"] || ""),
+        todoStatus: row["待办状态"] || row["todoStatus"] || "progress",
+        todoRemark: row["待办备注"] || row["todoRemark"] || "",
+        todoUpdatedAt: row["待办更新时间"] || row["todoUpdatedAt"] || "",
         createdAt: new Date().toISOString()
       };
 
-      await addRecord(record);
+      await addRecordAndBackup(record);
       count++;
+      dedupKeys.add(dedupKey); // prevent self-duplicate within same file
     }
 
-    showToast(`成功导入 ${count} 条记录！`);
+    const msg = [`成功导入 ${count} 条记录`];
+    if (skipped > 0) msg.push(`跳过 ${skipped} 条（重复）`);
+    showToast(msg.join("，"));
     renderTodayRecords();
     renderHistory();
   } catch (err) {
@@ -1575,7 +1880,11 @@ document.head.appendChild(styleEl);
 /* ============================================================
    Boot
    ============================================================ */
-init();
+init().catch(e => {
+  console.error("Init failed:", e);
+  document.getElementById("loginError").textContent = "系统初始化失败，请刷新重试";
+  document.getElementById("loginOverlay").classList.remove("hidden");
+});
 </script>
 </body>
 </html>
