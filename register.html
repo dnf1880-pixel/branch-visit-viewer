@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>网点拜访登记表</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D0D1A;--bg2:#151528;--bg3:#1C1C36;--bg4:#242445;
+  --purple:#7B5CFF;--pink:#FF6B9D;--purple-dim:rgba(123,92,255,.15);--pink-dim:rgba(255,107,157,.15);
+  --text:#E8E8F0;--text2:#9999B8;--text3:#666688;
+  --border:#2A2A4A;--radius:10px;--radius-sm:6px;
+  --font:PingFang SC,Microsoft YaHei,sans-serif;
+  --green:#4CAF50;--green-dim:rgba(76,175,80,.15);
+  --orange:#FF9800;--orange-dim:rgba(255,152,0,.15);
+}
+html{font-size:14px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+input,textarea,select,button{font-family:var(--font);font-size:1rem;outline:none;border:none}
+a{color:var(--purple);text-decoration:none}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ===== Login ===== */
+.login-overlay{position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.login-overlay.hidden{display:none}
+.login-box{width:90%;max-width:380px;padding:32px 24px}
+.login-logo{font-size:2rem;text-align:center;margin-bottom:8px}
+.login-title{font-size:1.3rem;font-weight:700;text-align:center;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:32px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:6px}
+.login-field input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-size:1rem;transition:border-color .2s}
+.login-field input:focus{border-color:var(--purple)}
+.login-field input::placeholder{color:#555}
+.login-btn{width:100%;padding:13px;border-radius:var(--radius);font-size:1rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;border:none;transition:opacity .2s,transform .1s;margin-top:8px}
+.login-btn:active{transform:scale(.98)}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+.login-error{color:var(--pink);font-size:.8rem;margin-top:8px;text-align:center;min-height:1.2em}
+
+/* ===== Header ===== */
+.header{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,#12122A 0%,#1A1A3A 100%);border-bottom:1px solid var(--border);padding:12px 16px;backdrop-filter:blur(10px)}
+.header-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.header h1{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
+.user-info{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:0 10px;flex:1;max-width:240px;cursor:pointer;transition:border-color .2s}
+.user-info:hover{border-color:var(--purple)}
+.user-info svg{width:16px;height:16px;fill:var(--purple);flex-shrink:0}
+.user-info .user-name{flex:1;min-width:0;color:var(--text);font-size:.88rem;padding:8px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-info .user-emp{font-size:.72rem;color:var(--text3);margin-left:4px}
+.header-actions{display:flex;gap:6px}
+.btn-icon{width:34px;height:34px;border-radius:var(--radius-sm);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--border);transition:all .2s}
+.btn-icon:hover{border-color:var(--purple);background:var(--purple-dim)}
+.btn-icon svg{width:16px;height:16px;fill:var(--text2)}
+
+/* ===== Tab Bar ===== */
+.tab-bar{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px}
+.tab-btn{flex:1;padding:10px 0;text-align:center;font-size:.9rem;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab-btn.active{color:var(--purple);border-bottom-color:var(--purple)}
+
+/* ===== Container ===== */
+.container{padding:12px 16px 80px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ===== Form ===== */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:5px;font-weight:500}
+.form-label .required{color:var(--pink);margin-left:2px}
+.form-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);transition:border-color .2s}
+.form-input:focus{border-color:var(--purple)}
+.form-input::placeholder{color:#555}
+textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
+.form-row{display:flex;gap:8px}
+.form-row>*{flex:1}
+
+/* Searchable select */
+.select-wrap{position:relative}
+.select-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:border-color .2s}
+.select-input:focus,.select-input.open{border-color:var(--purple)}
+.select-input .arrow{font-size:.7rem;color:var(--text2);transition:transform .2s}
+.select-input.open .arrow{transform:rotate(180deg)}
+.select-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);max-height:280px;overflow-y:auto;z-index:50;display:none}
+.select-dropdown.show{display:block}
+.select-search{width:100%;background:var(--bg2);border:none;border-bottom:1px solid var(--border);padding:8px 10px;color:var(--text);font-size:.85rem}
+.select-option{padding:8px 12px;cursor:pointer;font-size:.9rem;transition:background .15s;border-bottom:1px solid var(--border)}
+.select-option:hover{background:var(--purple-dim)}
+.select-option.selected{color:var(--purple);font-weight:600}
+.select-option .opt-city{font-size:.7rem;color:var(--purple);margin-right:4px;font-weight:600}
+.select-option .opt-sub{font-size:.72rem;color:var(--text3);margin-top:2px}
+
+/* Tags */
+.tags-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.tag-chip{padding:5px 10px;border-radius:20px;font-size:.78rem;cursor:pointer;border:1px solid var(--border);color:var(--text2);background:var(--bg2);transition:all .2s;user-select:none}
+.tag-chip.selected{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+.tag-chip.auto{background:var(--green-dim);border-color:var(--green);color:var(--green);animation:tagPop .3s ease}
+@keyframes tagPop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+.tag-chip:hover{border-color:var(--purple)}
+
+/* Location btn */
+.loc-btn{display:inline-flex;align-items:center;gap:4px;background:var(--purple-dim);color:var(--purple);padding:6px 10px;border-radius:var(--radius-sm);cursor:pointer;font-size:.78rem;font-weight:500;transition:all .2s;white-space:nowrap;border:1px solid transparent;flex-shrink:0}
+.loc-btn:hover{border-color:var(--purple)}
+.loc-btn.loading{opacity:.6;pointer-events:none}
+.loc-btn svg{width:14px;height:14px}
+
+/* AI Todos */
+.todo-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-top:6px}
+.todo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.todo-title{font-size:.85rem;font-weight:600;color:var(--pink);display:flex;align-items:center;gap:4px}
+.todo-title svg{width:16px;height:16px}
+.todo-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.todo-item:last-child{border-bottom:none}
+.todo-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.todo-check.checked{background:var(--purple);border-color:var(--purple)}
+.todo-check.checked svg{display:block}
+.todo-check svg{display:none;width:12px;height:12px;fill:#fff}
+.todo-text{flex:1;font-size:.85rem;color:var(--text);min-width:0}
+.todo-text input{width:100%;background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text);padding:2px 0;font-size:.85rem}
+.todo-del{width:20px;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#666;border-radius:4px;flex-shrink:0}
+.todo-del:hover{color:var(--pink);background:var(--pink-dim)}
+.todo-del svg{width:12px;height:12px}
+
+/* Submit btn */
+.btn-submit{width:100%;padding:12px;border-radius:var(--radius);font-size:1rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;transition:opacity .2s,transform .1s;border:none}
+.btn-submit:active{transform:scale(.98)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+.btn-submit.update-mode{background:linear-gradient(135deg,var(--orange),#FF5722)}
+.btn-secondary{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;transition:all .2s}
+.btn-secondary:hover{border-color:var(--purple);color:var(--purple)}
+
+/* ===== Today Records ===== */
+.today-section{margin-top:20px;border-top:1px solid var(--border);padding-top:16px}
+.today-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.today-title{font-size:.9rem;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px}
+.today-title .count{font-size:.75rem;background:var(--purple-dim);color:var(--purple);padding:1px 8px;border-radius:10px}
+.today-count{font-size:.78rem;color:var(--text3)}
+
+/* Card */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:10px;transition:border-color .2s}
+.card:hover{border-color:var(--purple)}
+.card.editing{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-name{font-weight:700;font-size:.95rem;color:var(--text)}
+.card-date{font-size:.75rem;color:var(--text2);white-space:nowrap}
+.card-meta{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.card-tag{font-size:.7rem;padding:2px 7px;border-radius:10px;background:var(--purple-dim);color:var(--purple)}
+.card-info{font-size:.78rem;color:var(--text2);margin-top:4px;line-height:1.5}
+.card-info span{margin-right:10px}
+.card-todo-count{font-size:.75rem;color:var(--pink);margin-top:4px}
+.card-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.card-btn{font-size:.78rem;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;border:1px solid var(--border);background:var(--bg3);color:var(--text2)}
+.card-btn:hover{border-color:var(--purple);color:var(--purple)}
+.card-btn.danger:hover{border-color:var(--pink);color:var(--pink)}
+.card-btn.edit-btn{background:var(--orange-dim);border-color:var(--orange);color:var(--orange)}
+
+/* ===== History ===== */
+.filter-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.filter-bar .form-input{padding:7px 10px;font-size:.82rem;flex:1;min-width:120px}
+.filter-bar select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239999B8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
+.record-count{font-size:.78rem;color:var(--text2);margin-bottom:10px}
+
+/* Empty state */
+.empty-state{text-align:center;padding:30px 20px;color:var(--text2)}
+.empty-state svg{width:40px;height:40px;fill:var(--border);margin-bottom:10px}
+.empty-state p{font-size:.85rem}
+
+/* ===== Confirm dialog ===== */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:250;display:none;align-items:center;justify-content:center}
+.confirm-overlay.show{display:flex}
+.confirm-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;max-width:320px;width:90%;text-align:center}
+.confirm-box p{margin-bottom:16px;font-size:.9rem}
+.confirm-btns{display:flex;gap:10px;justify-content:center}
+.confirm-btns button{padding:8px 24px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:.9rem;border:none}
+.confirm-ok{background:var(--pink);color:#fff}
+.confirm-cancel{background:var(--bg3);color:var(--text2);border:1px solid var(--border)!important}
+
+/* ===== Toast ===== */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--bg3);border:1px solid var(--purple);color:var(--text);padding:10px 20px;border-radius:var(--radius);font-size:.85rem;z-index:300;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{border-color:var(--pink)}
+
+/* ===== Import hidden ===== */
+#importFile{display:none}
+
+/* ===== Logout menu ===== */
+.logout-menu{position:absolute;top:50px;right:16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 0;z-index:110;display:none;min-width:120px}
+.logout-menu.show{display:block}
+.logout-menu-item{padding:8px 16px;font-size:.85rem;cursor:pointer;color:var(--text2);transition:all .15s}
+.logout-menu-item:hover{color:var(--pink);background:var(--pink-dim)}
+
+/* ===== Responsive ===== */
+@media(min-width:600px){
+  .container{max-width:560px;margin:0 auto}
+}
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <p id="confirmMsg"></p>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="closeConfirm(false)">取消</button>
+      <button class="confirm-ok" onclick="closeConfirm(true)">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Login Overlay ===== -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">📋</div>
+    <div class="login-title">网点拜访登记系统</div>
+    <div class="login-field">
+      <label>姓名<span style="color:var(--pink)">*</span></label>
+      <input type="text" id="loginName" placeholder="请输入姓名" autocomplete="off">
+    </div>
+    <div class="login-field">
+      <label>工号<span style="color:var(--pink)">*</span></label>
+      <input type="text" id="loginEmpNo" placeholder="请输入工号" autocomplete="off">
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <button class="login-btn" onclick="doLogin()">登 录</button>
+  </div>
+</div>
+
+<!-- Logout Menu -->
+<div class="logout-menu" id="logoutMenu">
+  <div class="logout-menu-item" onclick="doLogout()">🚪 退出登录</div>
+</div>
+
+<!-- Header -->
+<div class="header" id="mainHeader">
+  <div class="header-row">
+    <h1>📋 网点拜访登记</h1>
+    <div class="user-info" id="userInfo" onclick="toggleLogoutMenu()">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z"/></svg>
+      <span class="user-name" id="headerUserName"></span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" title="导出" onclick="exportData()">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      </button>
+      <button class="btn-icon" title="导入" onclick="document.getElementById('importFile').click()">
+        <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+      </button>
+    </div>
+  </div>
+  <input type="file" id="importFile" accept=".xlsx,.xls,.csv" onchange="importData(event)">
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-btn active" data-tab="form" onclick="switchTab('form')">📝 拜访登记</div>
+  <div class="tab-btn" data-tab="history" onclick="switchTab('history')">📚 历史记录</div>
+</div>
+
+<!-- Container -->
+<div class="container">
+
+  <!-- Form Panel -->
+  <div class="tab-panel active" id="panelForm">
+    <form id="visitForm" onsubmit="return handleSubmit(event)">
+      <input type="hidden" id="editId" value="">
+      <input type="hidden" id="editCreatedAt" value="">
+
+      <!-- 网点选择 -->
+      <div class="form-group">
+        <label class="form-label">选择网点<span class="required">*</span></label>
+        <div class="select-wrap" id="branchSelect">
+          <div class="select-input" id="branchInput" onclick="toggleBranchDropdown()">
+            <span id="branchDisplay" style="color:#555">请选择网点</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="select-dropdown" id="branchDropdown">
+            <input class="select-search" id="branchSearch" placeholder="搜索城市/网点简称..." oninput="filterBranches()">
+            <div id="branchOptions"></div>
+          </div>
+          <input type="hidden" id="branchValue">
+        </div>
+      </div>
+
+      <!-- 日期 + 联系人 -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">拜访日期<span class="required">*</span></label>
+          <input type="date" class="form-input" id="visitDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">联系人</label>
+          <input type="text" class="form-input" id="contactName" placeholder="联系人姓名">
+        </div>
+      </div>
+
+      <!-- 联系电话 -->
+      <div class="form-group">
+        <label class="form-label">联系电话</label>
+        <input type="tel" class="form-input" id="contactPhone" placeholder="手机号码">
+      </div>
+
+      <!-- 地址 -->
+      <div class="form-group">
+        <label class="form-label">地址</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" class="form-input" id="address" placeholder="详细地址" style="flex:1">
+          <button type="button" class="loc-btn" id="locBtn" onclick="getLocation()">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            获取定位
+          </button>
+        </div>
+        <input type="hidden" id="latitude">
+        <input type="hidden" id="longitude">
+      </div>
+
+      <!-- 关键问题备注 -->
+      <div class="form-group">
+        <label class="form-label">网点关键问题备注</label>
+        <textarea class="form-input" id="notes" placeholder="请描述拜访中发现的关键问题..." oninput="onNotesInput()"></textarea>
+      </div>
+
+      <!-- 网点标签 -->
+      <div class="form-group">
+        <label class="form-label">网点标签 <span style="font-size:.72rem;color:var(--green)">（备注自动识别·基于知识库框架）</span></label>
+        <div class="tags-wrap" id="tagsWrap"></div>
+      </div>
+
+      <!-- AI 待办 -->
+      <div class="form-group">
+        <div id="todoSection" style="display:none">
+          <div class="todo-section">
+            <div class="todo-header">
+              <div class="todo-title">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+                AI 智能待办 <span style="font-size:.7rem;color:var(--text3);margin-left:4px">·知识库驱动</span>
+              </div>
+            </div>
+            <div id="todoList"></div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">提交登记</button>
+      <button type="button" class="btn-secondary" id="cancelEditBtn" style="display:none;width:100%;margin-top:8px" onclick="cancelEdit()">取消编辑</button>
+    </form>
+
+    <!-- 今日拜访记录 -->
+    <div class="today-section">
+      <div class="today-header">
+        <div class="today-title">📅 今日拜访 <span class="count" id="todayCount">0</span></div>
+      </div>
+      <div id="todayList"></div>
+    </div>
+  </div>
+
+  <!-- History Panel -->
+  <div class="tab-panel" id="panelHistory">
+    <div class="filter-bar">
+      <input class="form-input" id="filterBranch" placeholder="搜索网点名">
+      <input type="date" class="form-input" id="filterDateFrom">
+      <input type="date" class="form-input" id="filterDateTo">
+    </div>
+    <div class="record-count" id="recordCount"></div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Constants & Config
+   ============================================================ */
+const BRANCHES = [
+  {city:"恩施市",name:"恩施",full:"湖北省恩施市",contact:"谭杰",phone:"13517135666",address:"恩施市松树坪传化物流港2号楼圆通快递"},
+  {city:"恩施市",name:"建始",full:"湖北省恩施州建始县",contact:"陈卫军",phone:"18972410596",address:"恩施州建始县业州镇烟墩大道北段冷链物流园108号-109号"},
+  {city:"恩施市",name:"利川",full:"湖北省恩施自治州利川市",contact:"张帆",phone:"15629232777",address:"恩施市利川市蓝天路1号"},
+  {city:"宜昌市",name:"宜昌东站",full:"湖北省宜昌市东站",contact:"刘杰",phone:"13296760922",address:"宜昌市片区东站路188号三峡物流园D区D3072"},
+  {city:"宜昌市",name:"猇亭",full:"湖北省宜昌市猇亭",contact:"刘涛涛",phone:"18672907000",address:"湖北省宜昌市猇亭区猇亭大道189号三峡汽贸大世界6号楼1层"},
+  {city:"宜昌市",name:"宜昌高新区",full:"湖北省宜昌市高新区",contact:"梅艺",phone:"18671809353",address:"湖北省宜昌市西陵区中南路81号三峡果蔬交易中心仓库楼负一层11-14仓库"},
+  {city:"宜昌市",name:"三峡大学",full:"湖北省宜昌市三峡大学",contact:"萧春林",phone:"18007155769",address:"宜昌市黄河路40号达润汽修旁圆通速递"},
+  {city:"宜昌市",name:"点军区",full:"湖北省宜昌市点军区",contact:"周宇飞",phone:"13277172725",address:"宜昌市点军区将军路299号"},
+  {city:"宜昌市",name:"夷陵",full:"湖北省宜昌市夷陵区",contact:"萧春林",phone:"18007155769",address:"宜昌市夷陵区平湖大道52号"},
+  {city:"宜昌市",name:"宜都",full:"湖北省宜昌市宜都市",contact:"杨永成",phone:"18062992673",address:"宜都市城乡路241"},
+  {city:"宜昌市",name:"当阳",full:"湖北省宜昌市当阳市",contact:"何岸",phone:"13872665599",address:"湖北省宜昌市当阳市长坂路286号迪腾物流园8号仓库"},
+  {city:"宜昌市",name:"枝江",full:"湖北省宜昌市枝江市",contact:"毛晓燕",phone:"18871593852",address:"宜昌市枝江市双寿桥路龙鑫广场一号库"},
+  {city:"宜昌市",name:"秭归",full:"湖北省宜昌市秭归县",contact:"潘亿君",phone:"19092599778",address:"秭归县脐橙小镇游乐场对面B-105"},
+  {city:"恩施市",name:"野三关",full:"湖北省恩施自治州巴东县野三关",contact:"向海群",phone:"15172928866",address:"恩施市巴东县野三关镇高速路客运站旁"},
+  {city:"恩施市",name:"来凤",full:"湖北省恩施自治州来凤县",contact:"廖英杰",phone:"13886770681",address:"恩施市来凤县教育城电商产业园"},
+  {city:"恩施市",name:"巴东",full:"湖北省恩施市巴东县",contact:"王爱春",phone:"13971892030",address:"巴东县万福路118号金山商贸城圆通快递"},
+  {city:"恩施市",name:"宣恩",full:"湖北省恩施市宣恩县",contact:"王孔骏",phone:"17571010103",address:"恩施市宣恩县莲花坝村原复烤厂"},
+  {city:"恩施市",name:"咸丰",full:"湖北省恩施市咸丰县",contact:"蒋智生",phone:"13477201480",address:"恩施市咸丰县高乐山镇杨泗坝杨官大道5号"},
+  {city:"宜昌市",name:"五峰",full:"湖北省宜昌市五峰县",contact:"胡云峰",phone:"17771283765",address:"五峰土家族自治县渔洋关镇天池路28号"},
+  {city:"宜昌市",name:"远安",full:"湖北省宜昌市远安县",contact:"付丰琴",phone:"15572765505",address:"宜昌市远安县鸣凤镇临沮大道1137号"},
+  {city:"宜昌市",name:"兴山",full:"湖北省宜昌市兴山县",contact:"李祖君",phone:"15572702999",address:"宜昌市兴山县古夫镇香溪大道5号"},
+  {city:"宜昌市",name:"长阳",full:"湖北省宜昌市长阳县",contact:"谢劲松",phone:"13387288388",address:"长阳龙舟坪镇何家坪村8组833号"},
+  {city:"恩施市",name:"鹤峰",full:"湖北省恩施市鹤峰县",contact:"胡明权",phone:"18986853839",address:"恩施市鹤峰县中坝路20号"},
+  {city:"荆州市",name:"荆州城区",full:"湖北省荆州市城区",contact:"吴学亮",phone:"15057800083",address:"湖北省荆州市经济技术开发区联合街道上海大道86号圆捷通物流有限公司1号楼2楼"},
+  {city:"荆州市",name:"沙北新区",full:"湖北省荆州市沙北新区",contact:"吕彪",phone:"17671637610",address:"湖北省荆州市沙市区关沮镇园林北路122号南塑汽车零部件制造公司8号仓库"},
+  {city:"荆州市",name:"古城北",full:"湖北省荆州市古城北",contact:"朱义姣",phone:"13997638459",address:"湖北省荆州市荆州区郢城镇荆州大道49号浩然物流园2号仓库11-16南面楼"},
+  {city:"荆州市",name:"长港路",full:"湖北省荆州市长港路",contact:"王永吉",phone:"17762859985",address:"沙市区顺驰太阳城南门"},
+  {city:"荆州市",name:"荆州大学城",full:"湖北省荆州市大学城",contact:"叶方圆",phone:"15067370790",address:"湖北省荆州市经济技术开发区联合街道上海大道86号圆通速递荆州集运中心一层A区"},
+  {city:"荆州市",name:"江津西路",full:"湖北省荆州市江津西路",contact:"王诗桥",phone:"13593832503",address:"湖北省荆州市荆州区郢城镇荆州大道66号"},
+  {city:"荆州市",name:"武德路",full:"湖北省荆州市沙市区武德路",contact:"李小冬",phone:"18672119977",address:"湖北省荆州市沙市区武德路与北京路交叉口蓝星陶瓷城"},
+  {city:"荆州市",name:"北京路",full:"湖北省荆州市北京路",contact:"杨军人",phone:"13872302672",address:"湖北省荆州市沙市区跃进路16号锦绣荆江"},
+  {city:"荆州市",name:"开发区一部",full:"湖北省荆州市开发区一部",contact:"王尚军",phone:"15927809479",address:"江津东路95号长江物流园3号仓库"},
+  {city:"荆州市",name:"公安",full:"湖北省荆州市公安县",contact:"胡磊",phone:"18086205397",address:"湖北省荆州市公安县潺陵大道今非塑业院内"},
+  {city:"荆州市",name:"江陵",full:"湖北省荆州市江陵县",contact:"罗海燕",phone:"13872353337",address:"荆河路6号电商产业园"},
+  {city:"荆州市",name:"石首",full:"湖北省荆州市石首市",contact:"刘克军",phone:"13135792098",address:"石首市站后路长兴梦辉物流园B2"},
+  {city:"荆州市",name:"松滋",full:"湖北省荆州市松滋市",contact:"李健",phone:"13308614888",address:"松滋市新江口街道望月村委会"},
+  {city:"荆州市",name:"监利",full:"湖北省荆州市监利县",contact:"黄贻桃",phone:"13886581951",address:"湖北省监利市容城镇城东工业园创业路与荆南路交汇处"},
+  {city:"荆门市",name:"荆门城区",full:"湖北省荆门市城区",contact:"孙海波",phone:"18672426266",address:"荆门市东宝区牌楼镇新生路以北，物流园路以东3号仓库"},
+  {city:"荆门市",name:"沙洋",full:"湖北省荆门市沙洋",contact:"萧春林",phone:"18007155769",address:"湖北省荆门市沙洋县开源大道48号(原裕大华纺织)第04幢"},
+  {city:"荆门市",name:"钟祥",full:"湖北省荆门市钟祥市",contact:"任维佳",phone:"13337472065",address:"钟祥市西环三路一公里共配"},
+  {city:"潜江市",name:"潜江",full:"湖北省潜江市",contact:"田亚东",phone:"18995995768",address:"湖北省潜江市杨市办事处奥体路566号"},
+  {city:"荆州市",name:"洪湖",full:"湖北省荆州市洪湖市",contact:"颜泽刚",phone:"18007118008",address:"湖北省荆州市洪湖市文泉大道58号"},
+  {city:"荆门市",name:"京山",full:"湖北省荆门市京山县",contact:"李军",phone:"18972881111",address:"湖北省京山市金瑞物流园"}
+];
+
+const TAG_OPTIONS = [
+  "服务品质","散单取件","时效管控","遗失破损","工单CCR",
+  "揽派运营","终端驿站","市场客户","逆向业务","安全生产",
+  "人员管理","设备运维"
+];
+
+// Tag auto-extract keywords mapping
+// 80% keywords from IMA知识库真实培训材料，20% AI泛化补充
+const TAG_KEYWORDS = {
+  "服务品质": [
+    // 知识库来源：圆准达规范派签培训、网点质量管理与KPI提升
+    "圆准达","送货上门","上门","虚假签收","虚假上门","签收延误","签收位置照","面单照",
+    "派前电联","签收码","定位签收","异常上报","客诉","签收率","当频次","上门履约",
+    "按需上门","照片不规范","位置照","面单","签收标签","规范派签","上门话术",
+    // 泛化补充
+    "品质","服务质量","服务态度","差评"
+  ],
+  "散单取件": [
+    // 知识库来源：散单大盘服务质量能力提升培训
+    "散单","首揽","首揽及时率","分单","分单准确率","爽约","取消率","虚假取件","飞单",
+    "引导取消","接单","核价","揽收及时率","分单不合理","疑似配置错误","官方线上取消",
+    "订单爽约","核价及时率","综合取消率","完美履约","当日发货",
+    // 泛化补充
+    "取件","揽件","上门取件"
+  ],
+  "时效管控": [
+    // 知识库来源：网点质控培训、新机制PDF
+    "延误","超时","应签","当频次签收","出港交件","一车一签","截件","中转","派送时效",
+    "出港及时率","签收截止","频次内签收","激励派费","时效顺延","补签","内部时效",
+    // 泛化补充
+    "时效","准时","发车","到件","时效攻坚"
+  ],
+  "遗失破损": [
+    // 知识库来源：网点质控培训-KPI遗失率
+    "遗失","丢失","丢件","破损","赔偿","理赔","无忧","仲裁遗失","遗失率","遗失补签",
+    "有责遗失","等效业务量","十万分之",
+    // 泛化补充
+    "损坏","少件","错分","漏扫"
+  ],
+  "工单CCR": [
+    // 知识库来源：圆准达工单及CCR治理
+    "工单","CCR","客诉工单","主动工单","全链路","闭环率","判责","改责","工单处理",
+    "异常清理率","虚假举证","客诉进线","投诉率","未上门客诉","巡检工单","工单举证",
+    "判责成立","改责",
+    // 泛化补充
+    "投诉","申诉","回访"
+  ],
+  "揽派运营": [
+    // 知识库来源：新机制PDF-揽派分析
+    "揽派","交件分析","派件","送货区","三段码","地图维护","智能派件","一车一签",
+    "车货匹配","扫派","虚假直送","承包区","退货仓","送货点","地图留白","段码画图",
+    "揽收管理","派签管理","精准派",
+    // 泛化补充
+    "分拣","扫描","称重","装车","卸车","交接"
+  ],
+  "终端驿站": [
+    // 知识库来源：新机制PDF-终端分析
+    "驿站","快递柜","丰巢","格口","出库率","长滞留","入库","取件码","妈妈驿站",
+    "格口使用率","流失驿站","机会点","虚假入库","虚假驿站","超时收费","移机",
+    "高虚签","驿站拓展",
+    // 泛化补充
+    "代收点","自提柜","终端"
+  ],
+  "市场客户": [
+    // 知识库来源：新机制PDF-市场详细分析
+    "商机","流失","交叉客户","营销","违禁品","收入异动","品牌营销","客户管理",
+    "防流失","商机转化","核心客户","TOP客户","重货","直客","客户管家","特惠寄",
+    "客户预警","回访率",
+    // 泛化补充
+    "客户","市场","客单","寄递量"
+  ],
+  "逆向业务": [
+    // 知识库来源：抖音/淘天/拼多多/微信小店逆向培训
+    "逆向","抖音","淘天","拼多多","微信小店","上门取件","退货","官流","退货取件",
+    "超时履约","揽收停滞","改约","拒单","转单","逆向培训","平台工单",
+    // 泛化补充
+    "退件","退款","返修"
+  ],
+  "安全生产": [
+    // 泛化为主(20%)，结合知识库安全相关
+    "安全","消防","灭火器","烟感","事故","隐患","违规","危险","防护","巡查",
+    "明火","用电","防火","演练","预案","车辆安全","驾照","交通事故",
+    // 泛化补充
+    "制度","巡查记录"
+  ],
+  "人员管理": [
+    // 知识库来源：新机制-人岗匹配、散单-业务员管理
+    "人员","员工","离职","招聘","培训","考勤","缺人","排班","人岗匹配","业务员",
+    "送货点绑定","取件人配置","接单负责人","顶班","换绑","员工管理","岗前培训",
+    // 泛化补充
+    "新员工","工时","工资","花名册"
+  ],
+  "设备运维": [
+    // 泛化为主，结合知识库设备相关
+    "设备","扫描枪","电脑","打印机","称重仪","监控","网络","故障","维修","断网",
+    "行者","金刚","驾驶舱","网点管家","系统","数据魔方",
+    // 泛化补充
+    "硬件","服务器","POS机"
+  ]
+};
+
+// AI智能待办 - 基于知识库真实业务流程和整改方案生成
+// 80%来自培训材料中的具体操作要求，20%合理泛化
+const TODO_MAP = {
+  // 来源：圆准达规范派签培训
+  "服务品质": [
+    "核查圆准达派签流程合规性(识别→电联→上门→拍照→签收)",
+    "排查虚假签收/虚假上门记录，审查位置照与面单照规范性",
+    "检查异常上报规范性(电联门槛/照片举证/话术合规)"
+  ],
+  // 来源：散单大盘服务质量能力提升
+  "散单取件": [
+    "核查首揽及时率(目标≥88%)及分单准确率(目标≥90%)",
+    "清查爽约订单并督促业务员当日日清，检查实时监控待取件量",
+    "排查疑似虚假取件(应取未发货)和引导客户取消行为"
+  ],
+  // 来源：网点质控培训-时效攻坚、圆准达当频次签收
+  "时效管控": [
+    "分析延误根因及出港交件及时率(目标≥95%)",
+    "检查圆准达当频次签收达成(一派15:00/二派20:00)",
+    "核查一车一签车货匹配执行及交件四环节达标情况"
+  ],
+  // 来源：网点质控培训-KPI遗失率
+  "遗失破损": [
+    "核查遗失率是否超标(目标≤十万分之6)，排查遗失环节",
+    "跟进破损件赔偿理赔进度，核查无忧/仲裁案件",
+    "加强各环节交接扫描规范，减少漏扫和错分"
+  ],
+  // 来源：圆准达工单及CCR治理
+  "工单CCR": [
+    "清理积压工单(未上门客诉4H/主动工单6H时效内闭环)",
+    "分析CCR进线量(目标≤万分之80)，重点治理派签延误占比",
+    "核查主动工单异常清理率(目标≥90%)及二次上门执行"
+  ],
+  // 来源：新机制PDF-揽派分析
+  "揽派运营": [
+    "检查交件分析四大环节(一车一签/车货匹配)达标情况",
+    "核查送货区三段码画图及地图维护(防留白/未画图)",
+    "排查智能派件异常(虚假直送/承包区/退货仓基础问题)"
+  ],
+  // 来源：新机制PDF-终端分析
+  "终端驿站": [
+    "排查低出库率和长滞留驿站，制定一驿站一方案",
+    "核查格口使用率及流失驿站召回进度",
+    "排查虚假入库/虚假驿站及未设置超时收费快递柜"
+  ],
+  // 来源：新机制PDF-市场详细分析
+  "市场客户": [
+    "回访TOP流失/预警客户，核查核心客户回访率及业务增量",
+    "跟进商机转化(100%分配甄别)及交叉客户提升(占比→50%)",
+    "排查违禁品店铺及收入异动，联合财务整改"
+  ],
+  // 来源：各平台逆向培训材料
+  "逆向业务": [
+    "检查各平台上门取件履约率(淘天完美履约≥84%/拼多多上门履约≥99%)",
+    "核查平台工单处理时效(淘天4H/拼多多3H/抖音24H)",
+    "排查引导客户取消/飞单/拒单/转单行为(考核100-5000元/票)"
+  ],
+  // 泛化：安全管理基础要求
+  "安全生产": [
+    "检查消防设施(灭火器有效期/烟感)及安全通道畅通",
+    "核查车辆证件有效性及司机安全培训记录",
+    "排查用电及明火安全隐患，落实日常巡查制度"
+  ],
+  // 来源：新机制-人岗匹配、散单-业务员管理
+  "人员管理": [
+    "核查业务员人岗匹配及送货点取件人绑定准确性",
+    "安排新员工岗前操作规范培训(圆准达/散单/逆向)",
+    "更新离职/转岗人员送货点配置及接单负责人设置"
+  ],
+  // 泛化：设备管理基础要求
+  "设备运维": [
+    "检查扫描设备/称重仪运行状态，确保入库出库正常",
+    "核查监控覆盖及网络连通性，保障系统(行者/金刚)稳定",
+    "建立设备故障报修台账，制定定期维护计划"
+  ]
+};
+
+const TMAP_KEY = "OB4BZ-D4W3U-B7VVO-4PJWW-6TKDJ-WPB77";
+
+/* ============================================================
+   IndexedDB
+   ============================================================ */
+const DB_NAME = "VisitRecordDB";
+const DB_VERSION = 1;
+const STORE_NAME = "records";
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const database = e.target.result;
+      if (!database.objectStoreNames.contains(STORE_NAME)) {
+        const store = database.createObjectStore(STORE_NAME, { keyPath: "id" });
+        store.createIndex("visitor", "visitor", { unique: false });
+        store.createIndex("branch", "branch", { unique: false });
+        store.createIndex("date", "date", { unique: false });
+      }
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbOp(mode, fn) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, mode);
+    const store = tx.objectStore(STORE_NAME);
+    const result = fn(store);
+    if (result && result.onsuccess !== undefined) {
+      result.onsuccess = (e) => resolve(e.target.result);
+      result.onerror = (e) => reject(e.target.error);
+    } else {
+      tx.oncomplete = () => resolve(result);
+      tx.onerror = (e) => reject(e.target.error);
+    }
+  });
+}
+
+function getAllRecords() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function addRecord(record) {
+  return dbOp("readwrite", (store) => store.add(record));
+}
+
+function updateRecord(record) {
+  return dbOp("readwrite", (store) => store.put(record));
+}
+
+function deleteRecord(id) {
+  return dbOp("readwrite", (store) => store.delete(id));
+}
+
+/* ============================================================
+   State
+   ============================================================ */
+let currentUser = null; // {name, empNo}
+let selectedBranch = null;
+let selectedTags = new Set();
+let autoTags = new Set(); // tags auto-extracted from notes
+let generatedTodos = [];
+let checkedTodos = new Set();
+let editingRecordId = null; // null = new, string = editing
+
+/* ============================================================
+   Login
+   ============================================================ */
+function checkLogin() {
+  const saved = localStorage.getItem("vr_login");
+  if (saved) {
+    try {
+      currentUser = JSON.parse(saved);
+      return true;
+    } catch(e) {
+      localStorage.removeItem("vr_login");
+    }
+  }
+  return false;
+}
+
+function doLogin() {
+  const name = document.getElementById("loginName").value.trim();
+  const empNo = document.getElementById("loginEmpNo").value.trim();
+  const errEl = document.getElementById("loginError");
+
+  if (!name) { errEl.textContent = "请输入姓名"; return; }
+  if (!empNo) { errEl.textContent = "请输入工号"; return; }
+
+  currentUser = { name, empNo };
+  localStorage.setItem("vr_login", JSON.stringify(currentUser));
+  errEl.textContent = "";
+  enterApp();
+}
+
+function doLogout() {
+  localStorage.removeItem("vr_login");
+  currentUser = null;
+  document.getElementById("logoutMenu").classList.remove("show");
+  document.getElementById("loginOverlay").classList.remove("hidden");
+  document.getElementById("loginName").value = "";
+  document.getElementById("loginEmpNo").value = "";
+}
+
+function enterApp() {
+  document.getElementById("loginOverlay").classList.add("hidden");
+  document.getElementById("headerUserName").textContent = currentUser.name;
+}
+
+function toggleLogoutMenu() {
+  document.getElementById("logoutMenu").classList.toggle("show");
+}
+
+/* ============================================================
+   Init
+   ============================================================ */
+async function init() {
+  await openDB();
+
+  if (checkLogin()) {
+    enterApp();
+  }
+
+  initBranchSelector();
+  initTags();
+  initFormDefaults();
+  renderTodayRecords();
+  renderHistory();
+
+  // Login enter key
+  document.getElementById("loginEmpNo").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") doLogin();
+  });
+  document.getElementById("loginName").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.getElementById("loginEmpNo").focus();
+  });
+
+  // History filters
+  document.getElementById("filterBranch").addEventListener("input", debounce(renderHistory, 300));
+  document.getElementById("filterDateFrom").addEventListener("change", renderHistory);
+  document.getElementById("filterDateTo").addEventListener("change", renderHistory);
+
+  // Close dropdown on outside click
+  document.addEventListener("click", (e) => {
+    const wrap = document.getElementById("branchSelect");
+    if (!wrap.contains(e.target)) closeBranchDropdown();
+    // Close logout menu
+    const userInfo = document.getElementById("userInfo");
+    const menu = document.getElementById("logoutMenu");
+    if (!userInfo.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.remove("show");
+    }
+  });
+}
+
+function initFormDefaults() {
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("visitDate").value = today;
+}
+
+/* ============================================================
+   Branch Selector
+   ============================================================ */
+function initBranchSelector() {
+  renderBranchOptions(BRANCHES);
+}
+
+function branchLabel(b) {
+  return b.city + " · " + b.name;
+}
+
+function renderBranchOptions(list) {
+  const container = document.getElementById("branchOptions");
+  container.innerHTML = list.map(b => {
+    const isSelected = selectedBranch && selectedBranch.name === b.name && selectedBranch.city === b.city;
+    return `<div class="select-option${isSelected ? ' selected' : ''}" onclick='selectBranch(${JSON.stringify(b).replace(/'/g,"&#39;")})'>
+      <div><span class="opt-city">${escapeHtml(b.city)}</span>${escapeHtml(b.name)}</div>
+      <div class="opt-sub">${escapeHtml(b.contact)} ${escapeHtml(b.phone)}</div>
+    </div>`;
+  }).join("");
+}
+
+function toggleBranchDropdown() {
+  const input = document.getElementById("branchInput");
+  const dropdown = document.getElementById("branchDropdown");
+  const isOpen = dropdown.classList.contains("show");
+  if (isOpen) closeBranchDropdown();
+  else {
+    input.classList.add("open");
+    dropdown.classList.add("show");
+    document.getElementById("branchSearch").focus();
+  }
+}
+
+function closeBranchDropdown() {
+  document.getElementById("branchInput").classList.remove("open");
+  document.getElementById("branchDropdown").classList.remove("show");
+  document.getElementById("branchSearch").value = "";
+  renderBranchOptions(BRANCHES);
+}
+
+function filterBranches() {
+  const q = document.getElementById("branchSearch").value.trim().toLowerCase();
+  const filtered = BRANCHES.filter(b =>
+    b.city.toLowerCase().includes(q) ||
+    b.name.toLowerCase().includes(q) ||
+    b.full.toLowerCase().includes(q)
+  );
+  renderBranchOptions(filtered);
+}
+
+function selectBranch(b) {
+  selectedBranch = b;
+  const label = branchLabel(b);
+  document.getElementById("branchDisplay").textContent = label;
+  document.getElementById("branchDisplay").style.color = "var(--text)";
+  document.getElementById("branchValue").value = label;
+  document.getElementById("contactName").value = b.contact || "";
+  document.getElementById("contactPhone").value = b.phone || "";
+  document.getElementById("address").value = b.address || "";
+  closeBranchDropdown();
+}
+
+/* ============================================================
+   Tags (with auto-extract)
+   ============================================================ */
+function initTags() {
+  renderTags();
+}
+
+function renderTags() {
+  const wrap = document.getElementById("tagsWrap");
+  wrap.innerHTML = TAG_OPTIONS.map(t => {
+    const isAuto = autoTags.has(t);
+    const isManual = selectedTags.has(t);
+    const cls = isAuto ? "tag-chip auto" : (isManual ? "tag-chip selected" : "tag-chip");
+    return `<div class="${cls}" data-tag="${t}" onclick="toggleTag(this,'${t}')">${t}</div>`;
+  }).join("");
+}
+
+function toggleTag(el, tag) {
+  if (autoTags.has(tag)) {
+    // Auto-tag was clicked: user wants to deselect it
+    autoTags.delete(tag);
+    selectedTags.delete(tag);
+    el.classList.remove("auto", "selected");
+  } else if (selectedTags.has(tag)) {
+    selectedTags.delete(tag);
+    el.classList.remove("selected");
+  } else {
+    selectedTags.add(tag);
+    el.classList.add("selected");
+  }
+}
+
+function extractTagsFromNotes(notes) {
+  const newAuto = new Set();
+  if (!notes) return newAuto;
+  const lower = notes.toLowerCase();
+  for (const [tag, keywords] of Object.entries(TAG_KEYWORDS)) {
+    for (const kw of keywords) {
+      if (lower.includes(kw.toLowerCase())) {
+        newAuto.add(tag);
+        break;
+      }
+    }
+  }
+  return newAuto;
+}
+
+/* ============================================================
+   AI Todo Generation
+   ============================================================ */
+function onNotesInput() {
+  const notes = document.getElementById("notes").value.trim();
+
+  // Auto-extract tags
+  const newAutoTags = extractTagsFromNotes(notes);
+  // Remove old auto tags that are no longer matched, but keep manually selected ones
+  autoTags.forEach(t => {
+    if (!newAutoTags.has(t) && !selectedTags.has(t)) {
+      // was auto, no longer matches, remove
+    }
+  });
+  // Merge: auto tags + previously manually selected
+  autoTags = newAutoTags;
+  // Auto tags always show, but don't override manual deselection
+  renderTags();
+
+  // Generate todos
+  generateTodos();
+}
+
+function generateTodos() {
+  const notes = document.getElementById("notes").value.trim();
+  if (!notes) {
+    document.getElementById("todoSection").style.display = "none";
+    generatedTodos = [];
+    checkedTodos.clear();
+    return;
+  }
+
+  const todos = [];
+  const matchedTags = new Set();
+
+  // Match based on auto + manual tags (priority: direct tag match)
+  const allTags = new Set([...autoTags, ...selectedTags]);
+  allTags.forEach(tag => {
+    if (TODO_MAP[tag] && !matchedTags.has(tag)) {
+      matchedTags.add(tag);
+      TODO_MAP[tag].forEach(t => { if (!todos.includes(t)) todos.push(t); });
+    }
+  });
+
+  // Also scan notes for keywords to find tags not yet matched
+  for (const [tag, keywords] of Object.entries(TAG_KEYWORDS)) {
+    if (matchedTags.has(tag)) continue;
+    for (const kw of keywords) {
+      if (notes.includes(kw)) {
+        matchedTags.add(tag);
+        if (TODO_MAP[tag]) {
+          TODO_MAP[tag].forEach(t => { if (!todos.includes(t)) todos.push(t); });
+        }
+        break;
+      }
+    }
+  }
+
+  // Max 6 todos (2 tags × 3 each), trim to 6
+  generatedTodos = todos.slice(0, 6);
+  checkedTodos.clear();
+  generatedTodos.forEach((_, i) => checkedTodos.add(i));
+
+  if (generatedTodos.length > 0) {
+    document.getElementById("todoSection").style.display = "block";
+    renderTodoList();
+  } else {
+    document.getElementById("todoSection").style.display = "none";
+  }
+}
+
+function renderTodoList() {
+  const container = document.getElementById("todoList");
+  container.innerHTML = generatedTodos.map((t, i) => `
+    <div class="todo-item">
+      <div class="todo-check${checkedTodos.has(i) ? ' checked' : ''}" onclick="toggleTodoCheck(${i}, this)">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+      <div class="todo-text"><input value="${escapeHtml(t)}" onchange="updateTodoText(${i}, this.value)"></div>
+      <div class="todo-del" onclick="removeTodo(${i})">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </div>
+    </div>
+  `).join("");
+}
+
+function toggleTodoCheck(idx, el) {
+  if (checkedTodos.has(idx)) {
+    checkedTodos.delete(idx);
+    el.classList.remove("checked");
+  } else {
+    checkedTodos.add(idx);
+    el.classList.add("checked");
+  }
+}
+
+function updateTodoText(idx, val) {
+  generatedTodos[idx] = val;
+}
+
+function removeTodo(idx) {
+  generatedTodos.splice(idx, 1);
+  const newChecked = new Set();
+  checkedTodos.forEach(i => {
+    if (i < idx) newChecked.add(i);
+    else if (i > idx) newChecked.add(i - 1);
+  });
+  checkedTodos = newChecked;
+  if (generatedTodos.length === 0) {
+    document.getElementById("todoSection").style.display = "none";
+  } else {
+    renderTodoList();
+  }
+}
+
+/* ============================================================
+   Geolocation
+   ============================================================ */
+function getLocation() {
+  const btn = document.getElementById("locBtn");
+  if (!navigator.geolocation) {
+    showToast("浏览器不支持定位功能", true);
+    return;
+  }
+  btn.classList.add("loading");
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" style="animation:spin 1s linear infinite"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>定位中...';
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      document.getElementById("latitude").value = lat;
+      document.getElementById("longitude").value = lng;
+      try {
+        const addr = await reverseGeocode(lat, lng);
+        document.getElementById("address").value = addr;
+      } catch (err) {
+        document.getElementById("address").value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        showToast("地址解析失败，已填入坐标", true);
+      }
+      resetLocBtn();
+    },
+    (err) => {
+      showToast("定位失败：" + err.message, true);
+      resetLocBtn();
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+async function reverseGeocode(lat, lng) {
+  return new Promise((resolve, reject) => {
+    const callbackName = "tmap_cb_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+    const script = document.createElement("script");
+    const timeout = setTimeout(() => { cleanup(); reject(new Error("Reverse geocode timeout")); }, 8000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[callbackName] = function(data) {
+      cleanup();
+      if (data.status === 0 && data.result) resolve(data.result.address || "");
+      else reject(new Error("Reverse geocode failed: status " + data.status));
+    };
+
+    script.src = `https://apis.map.qq.com/ws/geocoder/v1/?location=${lat},${lng}&key=${TMAP_KEY}&output=jsonp&callback=${callbackName}`;
+    script.onerror = () => { cleanup(); reject(new Error("Script load error")); };
+    document.head.appendChild(script);
+  });
+}
+
+function resetLocBtn() {
+  const btn = document.getElementById("locBtn");
+  btn.classList.remove("loading");
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>获取定位';
+}
+
+/* ============================================================
+   Form Submit (Create / Update)
+   ============================================================ */
+async function handleSubmit(e) {
+  e.preventDefault();
+  if (!currentUser) { showToast("请先登录", true); return false; }
+  if (!selectedBranch) { showToast("请选择网点", true); return false; }
+
+  const visitDate = document.getElementById("visitDate").value;
+  if (!visitDate) { showToast("请选择拜访日期", true); return false; }
+
+  const phone = document.getElementById("contactPhone").value.trim();
+  if (phone && !/^1[3-9]\d{9}$/.test(phone)) {
+    showToast("手机号格式不正确", true);
+    return false;
+  }
+
+  const todos = generatedTodos.filter((_, i) => checkedTodos.has(i));
+  const allTags = Array.from(new Set([...autoTags, ...selectedTags]));
+
+  const isUpdate = !!editingRecordId;
+
+  const record = {
+    id: isUpdate ? editingRecordId : Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
+    visitor: currentUser.name,
+    empNo: currentUser.empNo,
+    branch: branchLabel(selectedBranch),
+    branchCity: selectedBranch.city,
+    branchName: selectedBranch.name,
+    date: visitDate,
+    contact: document.getElementById("contactName").value.trim(),
+    phone,
+    address: document.getElementById("address").value.trim(),
+    lat: document.getElementById("latitude").value,
+    lng: document.getElementById("longitude").value,
+    notes: document.getElementById("notes").value.trim(),
+    tags: allTags,
+    todos,
+    createdAt: isUpdate ? document.getElementById("editCreatedAt").value : new Date().toISOString(),
+    updatedAt: isUpdate ? new Date().toISOString() : undefined
+  };
+
+  try {
+    if (isUpdate) {
+      await updateRecord(record);
+      showToast("更新成功！");
+    } else {
+      await addRecord(record);
+      showToast("登记成功！");
+    }
+    resetForm();
+    renderTodayRecords();
+    renderHistory();
+  } catch (err) {
+    showToast(isUpdate ? "更新失败：" : "保存失败：" + err.message, true);
+  }
+  return false;
+}
+
+function resetForm() {
+  editingRecordId = null;
+  selectedBranch = null;
+  autoTags.clear();
+  selectedTags.clear();
+  document.getElementById("editId").value = "";
+  document.getElementById("editCreatedAt").value = "";
+  document.getElementById("branchDisplay").textContent = "请选择网点";
+  document.getElementById("branchDisplay").style.color = "#555";
+  document.getElementById("branchValue").value = "";
+  document.getElementById("visitDate").value = new Date().toISOString().split("T")[0];
+  document.getElementById("contactName").value = "";
+  document.getElementById("contactPhone").value = "";
+  document.getElementById("address").value = "";
+  document.getElementById("latitude").value = "";
+  document.getElementById("longitude").value = "";
+  document.getElementById("notes").value = "";
+  renderTags();
+  generatedTodos = [];
+  checkedTodos.clear();
+  document.getElementById("todoSection").style.display = "none";
+  document.getElementById("submitBtn").textContent = "提交登记";
+  document.getElementById("submitBtn").classList.remove("update-mode");
+  document.getElementById("cancelEditBtn").style.display = "none";
+}
+
+function cancelEdit() {
+  resetForm();
+  renderTodayRecords(); // remove editing highlight
+}
+
+/* ============================================================
+   Load Record to Form (for update)
+   ============================================================ */
+async function loadRecordToForm(id) {
+  const records = await getAllRecords();
+  const record = records.find(r => r.id === id);
+  if (!record) { showToast("记录不存在", true); return; }
+
+  editingRecordId = id;
+
+  // Find matching branch object
+  const branchObj = BRANCHES.find(b => branchLabel(b) === record.branch);
+  if (branchObj) {
+    selectBranch(branchObj);
+  } else {
+    document.getElementById("branchDisplay").textContent = record.branch;
+    document.getElementById("branchDisplay").style.color = "var(--text)";
+    document.getElementById("branchValue").value = record.branch;
+  }
+
+  document.getElementById("editCreatedAt").value = record.createdAt || "";
+  document.getElementById("visitDate").value = record.date;
+  document.getElementById("contactName").value = record.contact || "";
+  document.getElementById("contactPhone").value = record.phone || "";
+  document.getElementById("address").value = record.address || "";
+  document.getElementById("latitude").value = record.lat || "";
+  document.getElementById("longitude").value = record.lng || "";
+  document.getElementById("notes").value = record.notes || "";
+
+  // Tags
+  selectedTags.clear();
+  autoTags.clear();
+  (record.tags || []).forEach(t => selectedTags.add(t));
+  renderTags();
+
+  // Todos
+  generatedTodos = [...(record.todos || [])];
+  checkedTodos.clear();
+  generatedTodos.forEach((_, i) => checkedTodos.add(i));
+  if (generatedTodos.length > 0) {
+    document.getElementById("todoSection").style.display = "block";
+    renderTodoList();
+  } else {
+    document.getElementById("todoSection").style.display = "none";
+  }
+
+  // Switch to form tab
+  switchTab("form");
+
+  // Change button to update mode
+  document.getElementById("submitBtn").textContent = "更新记录";
+  document.getElementById("submitBtn").classList.add("update-mode");
+  document.getElementById("cancelEditBtn").style.display = "block";
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  // Highlight the editing card
+  renderTodayRecords();
+}
+
+/* ============================================================
+   Today Records (below form)
+   ============================================================ */
+async function renderTodayRecords() {
+  if (!currentUser) return;
+  const today = new Date().toISOString().split("T")[0];
+  let records = await getAllRecords();
+  records = records.filter(r => r.visitor === currentUser.name && r.date === today);
+  records.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+
+  const countEl = document.getElementById("todayCount");
+  const container = document.getElementById("todayList");
+  countEl.textContent = records.length;
+
+  if (records.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>今日暂无拜访记录</p></div>';
+    return;
+  }
+
+  container.innerHTML = records.map(r => {
+    const tagHtml = (r.tags || []).map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join("");
+    const todoCount = (r.todos || []).length;
+    const isEditing = editingRecordId === r.id;
+    return `
+      <div class="card${isEditing ? ' editing' : ''}" data-id="${r.id}">
+        <div class="card-top">
+          <div class="card-name">${escapeHtml(r.branch)}</div>
+          <div class="card-date">${r.date}</div>
+        </div>
+        <div class="card-meta">${tagHtml}</div>
+        <div class="card-info">
+          ${r.contact ? `<span>📞 ${escapeHtml(r.contact)}</span>` : ''}
+          ${todoCount > 0 ? `<span>✅ ${todoCount}条待办</span>` : ''}
+        </div>
+        ${r.notes ? `<div style="font-size:.75rem;color:var(--text3);margin-top:4px;line-height:1.4">${escapeHtml(r.notes.substring(0, 80))}${r.notes.length > 80 ? '...' : ''}</div>` : ''}
+        <div class="card-actions">
+          <button class="card-btn edit-btn">✏️ 编辑</button>
+          <button class="card-btn danger btn-delete">🗑 删除</button>
+        </div>
+      </div>`;
+  }).join("");
+
+  container.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.addEventListener("click", () => loadRecordToForm(btn.closest(".card").dataset.id));
+  });
+  container.querySelectorAll(".btn-delete").forEach(btn => {
+    btn.addEventListener("click", () => confirmDelete(btn.closest(".card").dataset.id));
+  });
+}
+
+/* ============================================================
+   History
+   ============================================================ */
+async function renderHistory() {
+  if (!currentUser) return;
+  let records = await getAllRecords();
+  records = records.filter(r => r.visitor === currentUser.name);
+
+  const branchFilter = document.getElementById("filterBranch").value.trim().toLowerCase();
+  if (branchFilter) {
+    records = records.filter(r =>
+      (r.branch || "").toLowerCase().includes(branchFilter) ||
+      (r.branchCity || "").toLowerCase().includes(branchFilter) ||
+      (r.branchName || "").toLowerCase().includes(branchFilter)
+    );
+  }
+
+  const dateFrom = document.getElementById("filterDateFrom").value;
+  const dateTo = document.getElementById("filterDateTo").value;
+  if (dateFrom) records = records.filter(r => r.date >= dateFrom);
+  if (dateTo) records = records.filter(r => r.date <= dateTo);
+
+  records.sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt || "").localeCompare(a.createdAt || ""));
+
+  const container = document.getElementById("historyList");
+  const countEl = document.getElementById("recordCount");
+  countEl.textContent = `共 ${records.length} 条记录`;
+
+  if (records.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+        <p>暂无拜访记录</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = records.map(r => {
+    const tagHtml = (r.tags || []).map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join("");
+    const todoCount = (r.todos || []).length;
+    const isEditing = editingRecordId === r.id;
+    return `
+      <div class="card${isEditing ? ' editing' : ''}" data-id="${r.id}">
+        <div class="card-top">
+          <div class="card-name">${escapeHtml(r.branch)}</div>
+          <div class="card-date">${r.date}</div>
+        </div>
+        <div class="card-meta">${tagHtml}</div>
+        <div class="card-info">
+          <span>👤 ${escapeHtml(r.visitor)}</span>
+          ${r.contact ? `<span>📞 ${escapeHtml(r.contact)}</span>` : ''}
+        </div>
+        ${todoCount > 0 ? `<div class="card-todo-count">✅ ${todoCount} 条待办</div>` : ''}
+        <div class="card-actions">
+          <button class="card-btn edit-btn">✏️ 编辑</button>
+          <button class="card-btn danger btn-delete">🗑 删除</button>
+        </div>
+      </div>`;
+  }).join("");
+
+  container.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.addEventListener("click", () => loadRecordToForm(btn.closest(".card").dataset.id));
+  });
+  container.querySelectorAll(".btn-delete").forEach(btn => {
+    btn.addEventListener("click", () => confirmDelete(btn.closest(".card").dataset.id));
+  });
+}
+
+/* ============================================================
+   Delete
+   ============================================================ */
+let confirmResolve = null;
+
+function confirmDelete(id) {
+  showConfirm("确定删除这条拜访记录吗？", (ok) => {
+    if (ok) doDelete(id);
+  });
+}
+
+async function doDelete(id) {
+  try {
+    await deleteRecord(id);
+    showToast("已删除");
+    if (editingRecordId === id) resetForm();
+    renderTodayRecords();
+    renderHistory();
+  } catch (err) {
+    showToast("删除失败：" + err.message, true);
+  }
+}
+
+function showConfirm(msg, callback) {
+  document.getElementById("confirmMsg").textContent = msg;
+  document.getElementById("confirmOverlay").classList.add("show");
+  confirmResolve = callback;
+}
+
+function closeConfirm(result) {
+  document.getElementById("confirmOverlay").classList.remove("show");
+  if (confirmResolve) {
+    confirmResolve(result);
+    confirmResolve = null;
+  }
+}
+
+/* ============================================================
+   Export / Import
+   ============================================================ */
+async function exportData() {
+  if (!currentUser) { showToast("请先登录", true); return; }
+  let records = await getAllRecords();
+  records = records.filter(r => r.visitor === currentUser.name);
+  if (records.length === 0) { showToast("暂无可导出的记录", true); return; }
+
+  const rows = records.map(r => ({
+    "网点": r.branch,
+    "日期": r.date,
+    "拜访人": r.visitor,
+    "工号": r.empNo || "",
+    "联系人": r.contact || "",
+    "联系电话": r.phone || "",
+    "地址": r.address || "",
+    "经度": r.lng || "",
+    "纬度": r.lat || "",
+    "标签": (r.tags || []).join("、"),
+    "关键问题备注": r.notes || "",
+    "待办事项": (r.todos || []).join("\n")
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "拜访记录");
+  XLSX.writeFile(wb, `拜访记录_${currentUser.name}_${new Date().toISOString().split("T")[0]}.xlsx`);
+  showToast("导出成功！");
+}
+
+async function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!currentUser) {
+    showToast("请先登录再导入", true);
+    event.target.value = "";
+    return;
+  }
+
+  try {
+    const data = await readFileAsArrayBuffer(file);
+    const wb = XLSX.read(data, { type: "array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws);
+
+    let count = 0;
+    for (const row of rows) {
+      const branch = row["网点"] || row["branch"] || "";
+      const date = row["日期"] || row["date"] || new Date().toISOString().split("T")[0];
+      if (!branch) continue;
+
+      const record = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 6) + count,
+        visitor: currentUser.name,
+        empNo: currentUser.empNo,
+        branch,
+        date,
+        contact: row["联系人"] || row["contact"] || "",
+        phone: row["联系电话"] || row["phone"] || "",
+        address: row["地址"] || row["address"] || "",
+        lat: row["纬度"] || row["lat"] || "",
+        lng: row["经度"] || row["lng"] || "",
+        tags: parseTags(row["标签"] || row["tags"] || ""),
+        notes: row["关键问题备注"] || row["notes"] || "",
+        todos: parseTodos(row["待办事项"] || row["todos"] || ""),
+        createdAt: new Date().toISOString()
+      };
+
+      await addRecord(record);
+      count++;
+    }
+
+    showToast(`成功导入 ${count} 条记录！`);
+    renderTodayRecords();
+    renderHistory();
+  } catch (err) {
+    showToast("导入失败：" + err.message, true);
+  }
+  event.target.value = "";
+}
+
+function readFileAsArrayBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(new Uint8Array(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function parseTags(val) {
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string" && val.trim()) return val.split(/[,、，]/).map(s => s.trim()).filter(Boolean);
+  return [];
+}
+
+function parseTodos(val) {
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string" && val.trim()) return val.split("\n").map(s => s.trim()).filter(Boolean);
+  return [];
+}
+
+/* ============================================================
+   Tab Switch
+   ============================================================ */
+function switchTab(tab) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.getElementById(tab === "form" ? "panelForm" : "panelHistory").classList.add("active");
+  if (tab === "history") renderHistory();
+}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+function showToast(msg, isError) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast" + (isError ? " error" : "");
+  void el.offsetWidth;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 2500);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function debounce(fn, ms) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), ms);
+  };
+}
+
+/* ============================================================
+   Spin animation
+   ============================================================ */
+const styleEl = document.createElement("style");
+styleEl.textContent = "@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}";
+document.head.appendChild(styleEl);
+
+/* ============================================================
+   Boot
+   ============================================================ */
+init();
+</script>
+</body>
+</html>
