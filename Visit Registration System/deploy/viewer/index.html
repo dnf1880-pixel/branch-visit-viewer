@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>圆通速递网点拜访数据看板</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1a1a2e;--bg2:#16213e;--bg3:#0f3460;--card:#1e2a4a;
+  --orange:#ff6b35;--orange2:#f7931e;--red:#e74c3c;--red2:#c0392b;
+  --green:#27ae60;--blue:#3498db;--purple:#8e44ad;
+  --text:#e8e8f0;--text2:#9999b8;--text3:#666688;
+  --border:#2a2a4a;--radius:10px;
+  --font:'PingFang SC','Microsoft YaHei','Helvetica Neue',sans-serif;
+}
+html{font-size:14px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+.loading{display:flex;align-items:center;justify-content:center;height:100vh;font-size:1.2rem;color:var(--text2)}
+.loading::after{content:'';width:20px;height:20px;margin-left:12px;border:2px solid var(--orange);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.header{background:linear-gradient(135deg,var(--orange),var(--red2));padding:24px 20px;position:sticky;top:0;z-index:100}
+.header h1{font-size:1.3rem;font-weight:700;color:#fff}
+.header .meta{font-size:.75rem;color:rgba(255,255,255,.75);margin-top:4px}
+.container{max-width:1200px;margin:0 auto;padding:16px}
+
+.alert-box{background:linear-gradient(135deg,rgba(231,76,60,.15),rgba(192,57,43,.08));border:1px solid rgba(231,76,60,.3);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
+.alert-box .alert-title{font-size:.85rem;font-weight:700;color:var(--red);margin-bottom:8px}
+.alert-list{display:flex;flex-wrap:wrap;gap:8px}
+.alert-item{background:rgba(231,76,60,.12);border:0.5px solid rgba(231,76,60,.25);border-radius:6px;padding:6px 12px;font-size:.8rem;color:#e74c3c;display:flex;align-items:center;gap:6px}
+.alert-item .dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.metric-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px}
+.metric-card .label{font-size:.75rem;color:var(--text2);margin-bottom:6px}
+.metric-card .value{font-size:1.6rem;font-weight:700;background:linear-gradient(135deg,var(--orange),var(--orange2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.metric-card .sub{font-size:.7rem;color:var(--text3);margin-top:4px}
+
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:768px){.charts{grid-template-columns:1fr}}
+.chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px}
+.chart-card h3{font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:12px}
+.chart-wrap{position:relative;height:260px}
+@media(max-width:768px){.chart-wrap{height:220px}}
+
+.table-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.table-card h3{font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:12px}
+.table-tools{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.table-tools input,.table-tools select{background:var(--bg);border:0.5px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:.8rem;font-family:var(--font);outline:none}
+.table-tools input:focus,.table-tools select:focus{border-color:var(--orange)}
+.table-tools input{flex:1;min-width:160px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{text-align:left;padding:10px 8px;color:var(--text2);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 8px;border-bottom:0.5px solid rgba(42,42,74,.5);white-space:nowrap}
+tr:hover td{background:rgba(255,107,53,.04)}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.68rem;margin:1px 2px;white-space:nowrap}
+.tag-service{background:rgba(52,152,219,.15);color:#3498db}
+.tag-market{background:rgba(142,68,173,.15);color:#8e44ad}
+.tag-op{background:rgba(39,174,96,.15);color:#27ae60}
+.tag-risk{background:rgba(231,76,60,.15);color:#e74c3c}
+.tag-time{background:rgba(243,156,18,.15);color:#f39c12}
+
+.city-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:.7rem}
+.city-jz{background:rgba(231,76,60,.12);color:#e74c3c}
+.city-yc{background:rgba(46,204,113,.12);color:#2ecc71}
+.city-es{background:rgba(52,152,219,.12);color:#3498db}
+.city-jm{background:rgba(155,89,182,.12);color:#9b59b6}
+.city-qj{background:rgba(241,196,15,.12);color:#f1c40f}
+
+.branch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:16px}
+.city-group{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px}
+.city-group h4{font-size:.8rem;font-weight:700;margin-bottom:8px;padding-bottom:6px;border-bottom:0.5px solid var(--border)}
+.city-group h4.es{color:#3498db;border-color:rgba(52,152,219,.3)}
+.city-group h4.yc{color:#2ecc71;border-color:rgba(46,204,113,.3)}
+.city-group h4.jz{color:#e74c3c;border-color:rgba(231,76,60,.3)}
+.city-group h4.jm{color:#9b59b6;border-color:rgba(155,89,182,.3)}
+.city-group h4.qj{color:#f1c40f;border-color:rgba(241,196,15,.3)}
+.city-group .branch-item{font-size:.75rem;padding:4px 0;color:var(--text2);display:flex;justify-content:space-between;align-items:center}
+.city-group .branch-item .contact{font-size:.65rem;color:var(--text3)}
+.city-group .branch-item.risk{color:var(--red);font-weight:600}
+
+.footer{text-align:center;padding:20px;color:var(--text3);font-size:.7rem;border-top:0.5px solid var(--border);margin-top:8px}
+.footer a{color:var(--orange);text-decoration:none}
+
+.empty{text-align:center;padding:40px;color:var(--text2);font-size:.9rem}
+
+.clickable{cursor:pointer;transition:background .15s}
+.clickable:hover{background:rgba(255,107,53,.06)}
+
+.timestamp-inline{font-size:.68rem;color:var(--text3)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">加载数据中</div></div>
+
+<script>
+(async function(){
+  const APP = document.getElementById('app');
+
+  function fmtTime(iso){
+    if(!iso) return '--';
+    const d = new Date(iso);
+    const now = Date.now();
+    const diff = now - d.getTime();
+    const mins = Math.floor(diff/60000);
+    if(mins<1) return '刚刚';
+    if(mins<60) return mins+'分钟前';
+    const hrs = Math.floor(mins/60);
+    if(hrs<24) return hrs+'小时前';
+    const days = Math.floor(hrs/24);
+    if(days<7) return days+'天前';
+    return d.toLocaleDateString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'});
+  }
+
+  function fmtDate(d){ return d.replace(/-/g,'/').replace(/T.*/,''); }
+
+  const tagCategories = {
+    '服务品质':'tag-service','散单取件':'tag-service','工单CCR':'tag-service',
+    '市场客户':'tag-market','逆向业务':'tag-market',
+    '揽派运营':'tag-op','终端驿站':'tag-op','设备运维':'tag-op',
+    '时效管控':'tag-time','人员管理':'tag-time',
+    '安全生产':'tag-risk','遗失破损':'tag-risk'
+  };
+
+  const cityClasses = {'荆州市':'jz','宜昌市':'yc','恩施市':'es','荆门市':'jm','潜江市':'qj'};
+
+  function tagClass(t){ return tagCategories[t]||'tag-service'; }
+  function cityClass(c){ return cityClasses[c]||''; }
+
+  function renderTag(t){ return '<span class="tag '+tagClass(t)+'">'+t+'</span>'; }
+
+  try{
+    var recordsResp = await fetch('../data/records.json');
+    var branchesResp = await fetch('../data/branches.json');
+    var summaryResp = await fetch('../data/summary.json');
+    if(!recordsResp.ok||!branchesResp.ok||!summaryResp.ok) throw new Error('数据加载失败');
+    var records = await recordsResp.json();
+    var branches = await branchesResp.json();
+    var summary = await summaryResp.json();
+  }catch(e){
+    APP.innerHTML='<div class="empty"><p>数据加载失败</p><p style="font-size:.8rem;margin-top:8px">'+e.message+'</p></div>';
+    return;
+  }
+
+  var cityMap = {};
+  branches.forEach(function(b){
+    if(!cityMap[b.city]) cityMap[b.city]=[];
+    cityMap[b.city].push(b);
+  });
+
+  var riskNames = (summary.riskBranches||[]).map(function(r){return r.name;});
+
+  var html = '';
+
+  html += '<div class="header">';
+  html += '<h1>圆通速递网点拜访数据看板</h1>';
+  html += '<div class="meta">覆盖荆州·荆门·宜昌·恩施·潜江  |  42个网点  |  更新于 '+fmtTime(summary.lastUpdated)+'</div>';
+  html += '</div>';
+
+  html += '<div class="container">';
+
+  if(summary.riskBranches&&summary.riskBranches.length){
+    html += '<div class="alert-box">';
+    html += '<div class="alert-title">风险预警</div>';
+    html += '<div class="alert-list">';
+    summary.riskBranches.forEach(function(r){
+      var lvl = r.level==='critical'?'紧急':'重要';
+      html += '<div class="alert-item"><span class="dot"></span>'+r.city+'·'+r.name+' — '+r.risk+' ['+lvl+']</div>';
+    });
+    html += '</div></div>';
+  }
+
+  html += '<div class="metrics">';
+  html += '<div class="metric-card"><div class="label">拜访记录数</div><div class="value">'+summary.totalRecords+'</div><div class="sub">覆盖 '+Object.keys(summary.cityDistribution||{}).filter(function(k){return summary.cityDistribution[k]>0}).length+' 个城市</div></div>';
+  html += '<div class="metric-card"><div class="label">网点总数</div><div class="value">'+branches.length+'</div><div class="sub">5城42网点</div></div>';
+  html += '<div class="metric-card"><div class="label">平均KPI评分</div><div class="value">'+(summary.kpiSummary?summary.kpiSummary.avg:'--')+'</div><div class="sub">最低 '+summary.kpiSummary.min+' / 最高 '+summary.kpiSummary.max+'</div></div>';
+  html += '<div class="metric-card"><div class="label">风险网点</div><div class="value" style="background:linear-gradient(135deg,#e74c3c,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent">'+(summary.riskBranches||[]).length+'</div><div class="sub">需重点关注</div></div>';
+  html += '</div>';
+
+  html += '<div class="charts">';
+  html += '<div class="chart-card"><h3>标签分布</h3><div class="chart-wrap"><canvas id="tagChart"></canvas></div></div>';
+  html += '<div class="chart-card"><h3>城市拜访分布</h3><div class="chart-wrap"><canvas id="cityChart"></canvas></div></div>';
+  html += '</div>';
+
+  html += '<div class="chart-card" style="margin-bottom:16px"><h3>网点覆盖 · 按城市分组</h3>';
+  html += '<div class="branch-grid">';
+  ['恩施市','宜昌市','荆州市','荆门市','潜江市'].forEach(function(city){
+    var list = cityMap[city]||[];
+    html += '<div class="city-group">';
+    html += '<h4 class="'+cityClass(city)+'">'+city+' <span style="font-weight:400;font-size:.7rem">('+list.length+'网点)</span></h4>';
+    list.forEach(function(b){
+      var isRisk = riskNames.indexOf(b.name)>=0;
+      html += '<div class="branch-item'+(isRisk?' risk':'')+'"><span>'+(isRisk?'⚠ ':'')+b.name+'</span><span class="contact">'+b.contact+'</span></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div></div>';
+
+  html += '<div class="table-card">';
+  html += '<h3>拜访记录列表 ('+records.length+'条)</h3>';
+  html += '<div class="table-tools">';
+  html += '<input type="text" id="searchInput" placeholder="搜索网点/城市/标签/内容...">';
+  html += '<select id="cityFilter"><option value="">全部城市</option>';
+  Object.keys(cityMap).forEach(function(c){ html += '<option value="'+c+'">'+c+'</option>'; });
+  html += '</select>';
+  html += '</div>';
+  html += '<div class="table-wrap">';
+  html += '<table><thead><tr><th>日期</th><th>城市</th><th>网点</th><th>联系人</th><th>标签</th><th>摘要</th></tr></thead><tbody id="recordBody">';
+  records.sort(function(a,b){ return b.date.localeCompare(a.date); }).forEach(function(r){
+    html += '<tr class="clickable" data-city="'+r.branchCity+'" data-text="'+ (r.branchName+r.branchCity+r.notes+(r.tags||[]).join(' ')).replace(/"/g,'') +'">';
+    html += '<td>'+fmtDate(r.date)+'</td>';
+    html += '<td><span class="city-badge city-'+cityClass(r.branchCity)+'">'+r.branchCity+'</span></td>';
+    html += '<td style="font-weight:600">'+r.branchName+'</td>';
+    html += '<td>'+r.contact+'</td>';
+    html += '<td>'+(r.tags||[]).map(renderTag).join(' ')+'</td>';
+    html += '<td style="max-width:280px;overflow:hidden;text-overflow:ellipsis">'+ (r.notes||'').substring(0,60) + (r.notes&&r.notes.length>60?'...':'') +'</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table></div></div>';
+
+  html += '<div class="footer">数据来源：圆通速递网点拜访登记系统  |  Powered by GitHub Pages  |  <span class="timestamp-inline">'+fmtTime(summary.lastUpdated)+'更新</span></div>';
+  html += '</div>';
+
+  APP.innerHTML = html;
+
+  var tagLabels = Object.keys(summary.tagDistribution||{});
+  var tagValues = tagLabels.map(function(k){return summary.tagDistribution[k];});
+  var tagColors = tagLabels.map(function(t){
+    var cls = tagClass(t);
+    var m = { 'tag-service':'#3498db','tag-market':'#8e44ad','tag-op':'#27ae60','tag-risk':'#e74c3c','tag-time':'#f39c12' };
+    return m[cls]||'#888';
+  });
+
+  var ctx1 = document.getElementById('tagChart');
+  if(ctx1){
+    new Chart(ctx1,{
+      type:'doughnut',
+      data:{labels:tagLabels,datasets:[{data:tagValues,backgroundColor:tagColors,borderColor:'#16213e',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#9999b8',font:{size:11},padding:8,usePointStyle:true,pointStyleWidth:8}}}}
+    });
+  }
+
+  var cityLabels = Object.keys(summary.cityDistribution||{});
+  var cityValues = cityLabels.map(function(k){return summary.cityDistribution[k];});
+  var cityColors = cityLabels.map(function(c){
+    var m = {'荆州市':'#e74c3c','宜昌市':'#2ecc71','恩施市':'#3498db','荆门市':'#9b59b6','潜江市':'#f1c40f'};
+    return m[c]||'#888';
+  });
+  var ctx2 = document.getElementById('cityChart');
+  if(ctx2){
+    new Chart(ctx2,{
+      type:'bar',
+      data:{labels:cityLabels,datasets:[{data:cityValues,backgroundColor:cityColors,borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{color:'#9999b8',stepSize:1},grid:{color:'rgba(42,42,74,.5)'}},x:{ticks:{color:'#9999b8'},grid:{display:false}}}}
+    });
+  }
+
+  var searchEl = document.getElementById('searchInput');
+  var filterEl = document.getElementById('cityFilter');
+  function doFilter(){
+    var q = (searchEl.value||'').toLowerCase();
+    var c = filterEl.value||'';
+    var rows = document.querySelectorAll('#recordBody tr');
+    rows.forEach(function(tr){
+      var city = tr.getAttribute('data-city')||'';
+      var txt = (tr.getAttribute('data-text')||'').toLowerCase();
+      var matchQ = !q||txt.indexOf(q)>=0;
+      var matchC = !c||city===c;
+      tr.style.display = (matchQ&&matchC)?'':'none';
+    });
+  }
+  if(searchEl) searchEl.addEventListener('input',doFilter);
+  if(filterEl) filterEl.addEventListener('change',doFilter);
+
+})();
+</script>
+</body>
+</html>

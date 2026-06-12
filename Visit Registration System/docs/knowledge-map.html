@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网点拜访登记系统 · 知识索引图谱</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D0D1A;--bg2:#151528;--bg3:#1C1C36;--bg4:#242445;
+  --purple:#7B5CFF;--pink:#FF6B9D;--green:#4CAF50;--orange:#FF9800;--cyan:#00BCD4;
+  --text:#E8E8F0;--text2:#9999B8;--text3:#666688;
+  --border:#2A2A4A;--radius:12px;
+}
+body{font-family:PingFang SC,Microsoft YaHei,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.header{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,#12122A,#1A1A3A);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.3rem;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .sub{font-size:.8rem;color:var(--text2)}
+.main{display:flex;gap:16px;padding:16px;max-width:1400px;margin:0 auto;flex-wrap:wrap}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.panel-header{padding:12px 16px;border-bottom:1px solid var(--border);font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:6px}
+.panel-body{padding:16px}
+
+/* Architecture Map */
+#archMap{flex:2;min-width:700px}
+#archMap .panel-body{height:600px;position:relative;overflow:hidden}
+
+/* Legend */
+#legendPanel{flex:0 0 300px}
+#legendPanel .panel-body{max-height:600px;overflow-y:auto}
+
+.legend-group{margin-bottom:16px}
+.legend-group-title{font-size:.78rem;color:var(--text2);font-weight:600;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.legend-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.8rem;cursor:pointer;transition:all .15s;border-radius:4px;padding:6px 8px}
+.legend-item:hover{background:var(--bg3)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-dot.layer-core{background:var(--cyan)}
+.legend-dot.layer-data{background:var(--green)}
+.legend-dot.layer-service{background:var(--orange)}
+.legend-dot.layer-ui{background:var(--purple)}
+.legend-dot.layer-external{background:var(--pink)}
+
+/* Tooltip */
+.tooltip{position:absolute;background:var(--bg3);border:1px solid var(--purple);border-radius:8px;padding:10px 14px;font-size:.78rem;pointer-events:none;z-index:50;display:none;max-width:260px;line-height:1.5}
+.tooltip .tt-title{font-weight:700;font-size:.85rem;margin-bottom:4px}
+.tooltip .tt-desc{color:var(--text2);font-size:.75rem}
+
+/* Data Flow */
+#dataFlow{margin-top:16px}
+.flow-step{display:flex;align-items:center;gap:12px;padding:10px 0;font-size:.82rem}
+.flow-step .step-num{width:24px;height:24px;border-radius:50%;background:var(--purple-dim);color:var(--purple);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0}
+.flow-step .step-arrow{color:var(--text3);margin:0 4px}
+
+/* Stats */
+.stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.stat-card{flex:1;min-width:100px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.stat-card .stat-num{font-size:1.6rem;font-weight:700;color:var(--purple)}
+.stat-card .stat-label{font-size:.72rem;color:var(--text2);margin-top:4px}
+
+/* SVG */
+svg text{user-select:none}
+.node-rect{cursor:pointer;transition:all .2s}
+.node-rect:hover{filter:brightness(1.3)}
+.edge-line{pointer-events:none}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📋 网点拜访登记系统 · 知识索引图谱</h1>
+    <div class="sub">版本 v2.0 | 架构文档驱动 | 2026-06-12</div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div style="max-width:1400px;margin:0 auto;padding:0 16px">
+  <div class="stats-row" style="margin-top:16px">
+    <div class="stat-card"><div class="stat-num">42</div><div class="stat-label">覆盖网点</div></div>
+    <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">城市片区</div></div>
+    <div class="stat-card"><div class="stat-num">12</div><div class="stat-label">标签分类</div></div>
+    <div class="stat-card"><div class="stat-num">36</div><div class="stat-label">待办模板</div></div>
+    <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">架构分层</div></div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Architecture Map -->
+  <div class="panel" id="archMap">
+    <div class="panel-header">🏗️ 系统架构全景图</div>
+    <div class="panel-body" id="mapContainer">
+      <svg id="mainSvg" width="100%" height="100%"></svg>
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="panel" id="legendPanel">
+    <div class="panel-header">📖 图例 & 模块索引</div>
+    <div class="panel-body" id="legendContent"></div>
+  </div>
+</div>
+
+<!-- Data Flow -->
+<div style="max-width:1400px;margin:0 auto;padding:0 16px 32px">
+  <div class="panel">
+    <div class="panel-header">🔄 核心数据流</div>
+    <div class="panel-body">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <span>用户登录</span>
+        <span class="step-arrow">→</span>
+        <span style="color:var(--purple)">localStorage 会话验证</span>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <span>选择网点</span>
+        <span class="step-arrow">→</span>
+        <span style="color:var(--orange)">BRANCHES 常量匹配</span>
+        <span class="step-arrow">→</span>
+        <span>填充默认联系人/地址</span>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <span>填写备注</span>
+        <span class="step-arrow">→</span>
+        <span style="color:var(--orange)">TagExtractor 关键词扫描</span>
+        <span class="step-arrow">→</span>
+        <span style="color:var(--green)">TodoGenerator 待办生成</span>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <span>获取定位</span>
+        <span class="step-arrow">→</span>
+        <span style="color:var(--pink)">Browser Geolocation</span>
+        <span class="step-arrow">→</span>
+        <span style="color:var(--pink)">腾讯地图 API 逆地理编码</span>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <span>提交表单</span>
+        <span class="step-arrow">→</span>
+        <span>校验 → 构建 Record 对象</span>
+        <span class="step-arrow">→</span>
+        <span style="color:var(--cyan)">IndexedDB 写入</span>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">6</div>
+        <span>导出/导入</span>
+        <span class="step-arrow">→</span>
+        <span style="color:var(--pink)">SheetJS XLSX 解析</span>
+        <span class="step-arrow">→</span>
+        <span>批量写入 IndexedDB</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== Data ==========
+const layers = {
+  ui: {
+    label: "界面层 (UI)",
+    color: "#7B5CFF",
+    y: 40,
+    nodes: [
+      { id:"login", label:"登录面板", desc:"姓名+工号认证，localStorage会话" },
+      { id:"branch-sel", label:"网点选择器", desc:"42个网点搜索下拉，预填联系人" },
+      { id:"visit-form", label:"拜访登记表单", desc:"日期/联系人/电话/地址/备注" },
+      { id:"tag-panel", label:"标签面板", desc:"12类标签展示，手动+自动双模式" },
+      { id:"todo-panel", label:"AI待办面板", desc:"知识库驱动，最多6条智能待办" },
+      { id:"today-list", label:"今日记录列表", desc:"按日期筛选，卡片式展示" },
+      { id:"history", label:"历史记录面板", desc:"网点/日期筛选，全量搜索" },
+      { id:"toast", label:"Toast提示", desc:"统一消息提示，2.5s自动消失" },
+      { id:"confirm", label:"确认弹窗", desc:"删除确认，Promise回调模式" },
+    ]
+  },
+  service: {
+    label: "业务逻辑层 (Services)",
+    color: "#FF9800",
+    y: 220,
+    nodes: [
+      { id:"auth", label:"认证服务", desc:"login/logout/checkLogin，localStorage会话管理" },
+      { id:"tag-extract", label:"标签识别引擎", desc:"12类×500+关键词匹配，80%来自IMA知识库" },
+      { id:"todo-gen", label:"待办生成引擎", desc:"12类×3条待办模板，基于真实培训材料" },
+      { id:"geo", label:"定位服务", desc:"Browser Geo + 腾讯地图逆地理编码，8s超时降级" },
+      { id:"export-import", label:"导入导出服务", desc:"SheetJS XLSX解析，支持中英文字段映射" },
+    ]
+  },
+  data: {
+    label: "数据层 (Data)",
+    color: "#4CAF50",
+    y: 400,
+    nodes: [
+      { id:"db-core", label:"IndexedDB 连接", desc:"DB初始化、版本管理、事务封装、索引创建" },
+      { id:"record-crud", label:"记录CRUD", desc:"add/update/delete/getAll，按用户隔离、日期索引" },
+    ]
+  },
+  core: {
+    label: "基础设施层 (Core)",
+    color: "#00BCD4",
+    y: 520,
+    nodes: [
+      { id:"config", label:"配置常量", desc:"BRANCHES/TAG_OPTIONS/TAG_KEYWORDS/TODO_MAP" },
+      { id:"env", label:"环境变量", desc:"TMAP_KEY读取，env级别管理" },
+      { id:"logger", label:"日志工具", desc:"INFO/WARN/ERROR三级，模块化输出" },
+      { id:"errors", label:"错误码体系", desc:"E_AUTH/E_DB/E_GEO/E_IMPORT/E_VALIDATION" },
+    ]
+  },
+  external: {
+    label: "外部依赖",
+    color: "#FF6B9D",
+    y: 620,
+    nodes: [
+      { id:"sheetjs", label:"SheetJS CDN", desc:"xlsx-0.20.1，Excel解析引擎" },
+      { id:"tmap", label:"腾讯地图 API", desc:"WebService逆地理编码，JSONP调用" },
+      { id:"browser-db", label:"浏览器 IndexedDB", desc:"本地持久化存储，按用户隔离" },
+      { id:"browser-geo", label:"浏览器 Geolocation", desc:"GPS坐标获取，需HTTPS" },
+    ]
+  }
+};
+
+// Edges: service -> data dependencies
+const edges = [
+  // Service -> Data
+  { from:"auth", to:"db-core", style:"dashed" },
+  { from:"export-import", to:"record-crud", style:"dashed" },
+
+  // Data -> Core
+  { from:"db-core", to:"config", style:"dotted" },
+  { from:"db-core", to:"logger", style:"dotted" },
+  { from:"record-crud", to:"errors", style:"dotted" },
+
+  // Service -> Core
+  { from:"auth", to:"config", style:"dotted" },
+  { from:"tag-extract", to:"config", style:"dotted" },
+  { from:"todo-gen", to:"config", style:"dotted" },
+  { from:"geo", to:"env", style:"dotted" },
+  { from:"geo", to:"errors", style:"dotted" },
+  { from:"export-import", to:"errors", style:"dotted" },
+  { from:"export-import", to:"logger", style:"dotted" },
+
+  // UI -> Service
+  { from:"login", to:"auth" },
+  { from:"branch-sel", to:"config" },
+  { from:"visit-form", to:"tag-extract" },
+  { from:"visit-form", to:"todo-gen" },
+  { from:"visit-form", to:"geo" },
+  { from:"visit-form", to:"record-crud" },
+  { from:"tag-panel", to:"tag-extract" },
+  { from:"todo-panel", to:"todo-gen" },
+  { from:"today-list", to:"record-crud" },
+  { from:"history", to:"record-crud" },
+  { from:"toast", to:"errors" },
+
+  // External -> Service
+  { from:"export-import", to:"sheetjs", style:"dashed" },
+  { from:"geo", to:"tmap", style:"dashed" },
+  { from:"db-core", to:"browser-db", style:"dashed" },
+  { from:"geo", to:"browser-geo", style:"dashed" },
+];
+
+// ========== Layout ==========
+const allNodes = [];
+const allNodeMap = {};
+Object.entries(layers).forEach(([layerKey, layer]) => {
+  const count = layer.nodes.length;
+  layer.nodes.forEach((n, i) => {
+    n.layer = layerKey;
+    n.color = layer.color;
+    n.x = 80 + (i % Math.ceil(count/2)) * 280;
+    n.y = layer.y + (Math.floor(i / Math.ceil(count/2))) * 70;
+    allNodes.push(n);
+    allNodeMap[n.id] = n;
+  });
+});
+
+// Adjust x for wide layouts
+Object.entries(layers).forEach(([, layer]) => {
+  const count = layer.nodes.length;
+  const cols = Math.ceil(count/2);
+  const totalW = cols * 280 - 40;
+  const startX = (900 - totalW) / 2;
+  layer.nodes.forEach((n, i) => {
+    n.x = startX + (i % cols) * 280;
+  });
+});
+
+// ========== SVG Render ==========
+const svg = document.getElementById("mainSvg");
+const tooltip = document.getElementById("tooltip");
+
+function render() {
+  let html = '';
+
+  // Draw edges
+  edges.forEach(e => {
+    const from = allNodeMap[e.from];
+    const to = allNodeMap[e.to];
+    if (!from || !to) return;
+    const fx = from.x + 120, fy = from.y + 30;
+    const tx = to.x + 120, ty = to.y;
+    const color = from.color;
+    const dash = e.style === "dashed" ? "8,4" : e.style === "dotted" ? "3,3" : "";
+    const opacity = e.style === "dotted" ? "0.3" : "0.5";
+    html += `<line x1="${fx}" y1="${fy}" x2="${tx}" y2="${ty}" stroke="${color}" stroke-width="1.5" stroke-dasharray="${dash}" opacity="${opacity}" class="edge-line"/>`;
+  });
+
+  // Draw nodes
+  allNodes.forEach(n => {
+    const w = 240, h = 48;
+    html += `
+      <g class="node-group" data-id="${n.id}" transform="translate(${n.x},${n.y})">
+        <rect class="node-rect" x="0" y="0" width="${w}" height="${h}" rx="8"
+              fill="${n.color}15" stroke="${n.color}" stroke-width="1.5"/>
+        <text x="12" y="20" fill="${n.color}" font-size="12" font-weight="700">${n.label}</text>
+        <text x="12" y="36" fill="#666688" font-size="10">${n.desc}</text>
+      </g>`;
+  });
+
+  // Layer labels
+  Object.entries(layers).forEach(([key, layer]) => {
+    html += `
+      <text x="16" y="${layer.y + 20}" fill="${layer.color}" font-size="11" font-weight="600" opacity="0.7">${layer.label}</text>
+      <line x1="16" y1="${layer.y + 28}" x2="100" y2="${layer.y + 28}" stroke="${layer.color}" stroke-width="1" opacity="0.2"/>
+    `;
+  });
+
+  svg.innerHTML = html;
+
+  // Tooltip events
+  svg.querySelectorAll(".node-group").forEach(g => {
+    const id = g.dataset.id;
+    g.addEventListener("mouseenter", (e) => {
+      const n = allNodeMap[id];
+      if (!n) return;
+      const layerInfo = layers[n.layer];
+      tooltip.innerHTML = `<div class="tt-title" style="color:${n.color}">${n.label}</div>
+        <div class="tt-desc">${n.desc}</div>
+        <div class="tt-desc" style="margin-top:4px">📂 ${layerInfo.label}</div>`;
+      tooltip.style.display = "block";
+    });
+    g.addEventListener("mousemove", (e) => {
+      const rect = document.getElementById("mapContainer").getBoundingClientRect();
+      tooltip.style.left = (e.clientX - rect.left + 16) + "px";
+      tooltip.style.top = (e.clientY - rect.top - 60) + "px";
+    });
+    g.addEventListener("mouseleave", () => {
+      tooltip.style.display = "none";
+    });
+  });
+
+  // Click to highlight
+  svg.querySelectorAll(".node-group").forEach(g => {
+    g.addEventListener("click", () => {
+      const id = g.dataset.id;
+      svg.querySelectorAll(".node-rect").forEach(r => r.setAttribute("opacity", "0.3"));
+      svg.querySelectorAll(".edge-line").forEach(l => l.setAttribute("opacity", "0.1"));
+
+      // Highlight connected nodes
+      const connected = new Set([id]);
+      edges.forEach(e => {
+        if (e.from === id) connected.add(e.to);
+        if (e.to === id) connected.add(e.from);
+      });
+
+      connected.forEach(cid => {
+        const ng = svg.querySelector(`[data-id="${cid}"]`);
+        if (ng) ng.querySelector(".node-rect").setAttribute("opacity", "1");
+      });
+
+      // Highlight relevant edges
+      svg.querySelectorAll(".edge-line").forEach((l, i) => {
+        const e = edges[i];
+        if (e && (e.from === id || e.to === id)) {
+          l.setAttribute("opacity", "0.8");
+          l.setAttribute("stroke-width", "2");
+        }
+      });
+
+      document.getElementById("legendContent").scrollIntoView({ behavior:"smooth" });
+    });
+
+    g.addEventListener("dblclick", () => {
+      svg.querySelectorAll(".node-rect").forEach(r => r.setAttribute("opacity", "1"));
+      svg.querySelectorAll(".edge-line").forEach(l => { l.setAttribute("opacity","0.5"); l.setAttribute("stroke-width","1.5"); });
+    });
+  });
+}
+
+// ========== Legend ==========
+function renderLegend() {
+  const container = document.getElementById("legendContent");
+  let html = '<div style="font-size:.75rem;color:var(--text3);margin-bottom:12px">💡 单击节点高亮关联 · 双击恢复全图</div>';
+
+  Object.entries(layers).forEach(([key, layer]) => {
+    html += `<div class="legend-group">
+      <div class="legend-group-title">${layer.label}</div>`;
+    layer.nodes.forEach(n => {
+      html += `<div class="legend-item" data-node="${n.id}" onclick="highlightNode('${n.id}')">
+        <div class="legend-dot layer-${key}"></div>
+        <div>
+          <div style="font-weight:600">${n.label}</div>
+          <div style="font-size:.7rem;color:var(--text3)">${n.desc}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function highlightNode(id) {
+  // Simulate click on SVG node
+  const ng = svg.querySelector(`[data-id="${id}"]`);
+  if (ng) ng.dispatchEvent(new Event("click"));
+}
+
+// ========== Init ==========
+render();
+renderLegend();
+
+// Responsive resize
+window.addEventListener("resize", () => {
+  // Keep as-is for now, the viewBox handles scaling
+});
+</script>
+</body>
+</html>

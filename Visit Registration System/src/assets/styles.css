@@ -1,0 +1,125 @@
+/* ============================================================
+   网点拜访登记系统 — 全局样式
+   主题变量统一管理，禁止组件内硬编码颜色
+   ============================================================ */
+
+:root {
+  /* 背景色系 */
+  --bg: #0D0D1A;
+  --bg2: #151528;
+  --bg3: #1C1C36;
+  --bg4: #242445;
+
+  /* 品牌色 */
+  --purple: #7B5CFF;
+  --pink: #FF6B9D;
+  --purple-dim: rgba(123, 92, 255, 0.15);
+  --pink-dim: rgba(255, 107, 157, 0.15);
+
+  /* 功能色 */
+  --green: #4CAF50;
+  --green-dim: rgba(76, 175, 80, 0.15);
+  --orange: #FF9800;
+  --orange-dim: rgba(255, 152, 0, 0.15);
+  --cyan: #00BCD4;
+
+  /* 文字色 */
+  --text: #E8E8F0;
+  --text2: #9999B8;
+  --text3: #666688;
+
+  /* 边框 & 圆角 */
+  --border: #2A2A4A;
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  /* 字体 */
+  --font: PingFang SC, Microsoft YaHei, sans-serif;
+}
+
+/* ===== Reset ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 14px;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input, textarea, select, button {
+  font-family: var(--font);
+  font-size: 1rem;
+  outline: none;
+  border: none;
+}
+
+a {
+  color: var(--purple);
+  text-decoration: none;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ===== Utility ===== */
+.hidden { display: none !important; }
+
+/* ===== Form Base ===== */
+.form-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--purple); }
+.form-input::placeholder { color: #555; }
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.5;
+}
+
+/* ===== Button Base ===== */
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  color: #fff;
+  transition: opacity 0.2s, transform 0.1s;
+  border: none;
+}
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--purple); color: var(--purple); }

@@ -1,0 +1,38 @@
+{
+  "totalRecords": 8,
+  "branchCount": 42,
+  "cityCount": 5,
+  "tagDistribution": {
+    "市场客户": 3,
+    "人员管理": 2,
+    "安全生产": 2,
+    "时效管控": 3,
+    "服务品质": 2,
+    "工单CCR": 1,
+    "揽派运营": 2,
+    "散单取件": 3,
+    "终端驿站": 1,
+    "设备运维": 2,
+    "逆向业务": 1,
+    "遗失破损": 1
+  },
+  "cityDistribution": {
+    "荆州市": 3,
+    "宜昌市": 2,
+    "恩施市": 2,
+    "荆门市": 1,
+    "潜江市": 0
+  },
+  "kpiSummary": {
+    "avg": 84.3,
+    "max": 92.0,
+    "min": 58.0,
+    "belowSixty": ["宣恩"]
+  },
+  "riskBranches": [
+    { "name": "石首", "city": "荆州市", "risk": "资金链断裂", "level": "critical" },
+    { "name": "武德路", "city": "荆州市", "risk": "欠薪纠纷+KPI<80", "level": "high" },
+    { "name": "宣恩", "city": "恩施市", "risk": "质量评分<60", "level": "high" }
+  ],
+  "lastUpdated": "2026-06-10T10:15:00.000Z"
+}
