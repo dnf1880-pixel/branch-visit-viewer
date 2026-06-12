@@ -280,9 +280,11 @@ async function render() {
     if (d >= monthStartStr) monthCount++;
     if (d >= mondayStr) weekCount++;
 
-    const city = r.branchCity || "其他";
+    // Fallback for old records: extract city/name from "荆州市 · 荆州城区" format
+    const branchParts = r.branch ? r.branch.split(" · ") : [];
+    const city = r.branchCity || branchParts[0] || "其他";
     if (!cityMap[city]) cityMap[city] = {};
-    const bName = r.branchName || r.branch || "未知";
+    const bName = r.branchName || branchParts[1] || r.branch || "未知";
     cityMap[city][bName] = (cityMap[city][bName] || 0) + 1;
   }
 
