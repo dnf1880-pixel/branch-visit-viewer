@@ -168,7 +168,8 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 /* ===== History ===== */
 .filter-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .filter-bar .form-input{padding:7px 10px;font-size:.82rem;flex:1;min-width:120px}
-.filter-bar select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239999B8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
+.filter-bar input[type="date"].form-input{color-scheme:dark;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font)}
+.filter-bar input[type="date"].form-input::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 .record-count{font-size:.78rem;color:var(--text2);margin-bottom:10px}
 
 /* Empty state */
@@ -208,7 +209,9 @@ textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
 /* ===== Dashboard Panel ===== */
 .panel-overlay{display:none;padding:12px 16px 40px;min-height:100vh}
 .panel-overlay.active{display:block}
-.panel-back{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:150;display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 18px;font-size:.82rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4);backdrop-filter:blur(8px)}
+.panel-back{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:150;display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:2px solid var(--border);border-radius:20px;padding:8px 18px;font-size:.82rem;font-weight:500;color:var(--text2);cursor:grab;transition:box-shadow .2s;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4);backdrop-filter:blur(8px);user-select:none}
+.panel-back:active{cursor:grabbing}
+.panel-back:hover{border-color:var(--purple);color:var(--purple);box-shadow:0 4px 20px rgba(123,92,255,.3)}
 .panel-back:hover{border-color:var(--purple);color:var(--purple);box-shadow:0 4px 20px rgba(123,92,255,.25)}
 .panel-back svg{width:14px;height:14px;fill:currentColor}
 
@@ -2372,8 +2375,81 @@ async function dSaveEdit(el) {
 }
 
 /* ============================================================
+   Draggable .panel-back buttons
+   =========================================================== */
+(function(){
+  document.querySelectorAll('.panel-back').forEach((btn, idx) => {
+    const STORE_KEY = 'panelBackPos_' + idx;
+    let dragging = false, moved = false;
+    let sx, sy, ox, oy;
+
+    // Restore saved position
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+      if (saved && typeof saved.left === 'number') {
+        btn.style.left = saved.left + 'px';
+        btn.style.top  = saved.top  + 'px';
+        btn.style.transform = 'none';
+        btn.style.bottom = 'auto';
+      }
+    } catch(e) {}
+
+    function savePos() {
+      try {
+        const r = btn.getBoundingClientRect();
+        localStorage.setItem(STORE_KEY, JSON.stringify({left: r.left, top: r.top}));
+      } catch(e) {}
+    }
+
+    btn.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      dragging = true; moved = false;
+      sx = e.clientX; sy = e.clientY;
+      const r = btn.getBoundingClientRect();
+      // Ensure we're in px mode (not centered transform)
+      if (btn.style.transform !== 'none') {
+        btn.style.left = r.left + 'px';
+        btn.style.top  = r.top  + 'px';
+        btn.style.transform = 'none';
+        btn.style.bottom = 'auto';
+      }
+      ox = e.clientX - r.left;
+      oy = e.clientY - r.top;
+      btn.setPointerCapture(e.pointerId);
+      btn.style.cursor = 'grabbing';
+    });
+
+    btn.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = Math.abs(e.clientX - sx), dy = Math.abs(e.clientY - sy);
+      if (dx > 4 || dy > 4) moved = true;
+      btn.style.left = (e.clientX - ox) + 'px';
+      btn.style.top  = (e.clientY - oy) + 'px';
+    });
+
+    btn.addEventListener('pointerup', e => {
+      dragging = false;
+      btn.style.cursor = 'grab';
+      if (moved) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        btn._wasDragged = true;
+        setTimeout(() => { btn._wasDragged = false; }, 100);
+      }
+      savePos();
+    });
+
+    // Prevent click if was dragged
+    btn.addEventListener('click', e => {
+      if (btn._wasDragged) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+  });
+})();
+
+/* ============================================================
    Boot
-   ============================================================ */
+   =========================================================== */
 init().catch(e => {
   console.error("Init failed:", e);
   document.getElementById("loginError").textContent = "系统初始化失败，请刷新重试";
